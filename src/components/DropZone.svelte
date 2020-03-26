@@ -6,6 +6,9 @@
     let file = null;
     let errorMessage = null;
 
+    //Check for touch events
+    let isMobile = (('ontouchstart' in window) || (navigator.MaxTouchPoints > 0) || (navigator.msMaxTouchPoints > 0))
+
     //Define the input file browse events
     const selectedFile = (e) => {
         e.preventDefault()
@@ -91,18 +94,22 @@
         on:click={onClick}
     >
         <div class="h-full flex flex-col justify-center items-center text-gray-600 font-light text-sm sm:text-base">
-            {#if isDropping}
-                <p>Let go to try and read the file!</p>
-            {:else if file}
-            <div>
-                <p class="text-center">Current file is : <i>{file.name}</i></p>
-                <p class="text-center mt-4">Drag another file here or click to browse</p>
+            <div class="p-4">
+                {#if isDropping}
+                    <p>Let go to try and read the file!</p>
+                {:else if file}
+                    <p class="text-center">Current file is : <i>{file.name}</i></p>
+                    <p class="text-center mt-4">Drag another file here or click to browse</p>
+                {:else if errorMessage}
+                    <p>{errorMessage}</p>
+                {:else}
+                    {#if isMobile}
+                        <p>Click here to browse for a file on your device</p>   
+                    {:else}
+                        <p>Drag a file here or click to browse</p>   
+                    {/if}
+                {/if}
             </div>
-            {:else if errorMessage}
-                <p>{errorMessage}</p>
-            {:else}
-                <p>Drag a file here or click to browse</p>
-            {/if}
         </div>
     </div>
 </div>
