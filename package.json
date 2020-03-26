@@ -1,6 +1,6 @@
 {
   "name": "geode",
-  "description":"A Helpful GeoTIFF Previewer",
+  "description": "A Helpful GeoTIFF Previewer",
   "version": "1.0.0",
   "scripts": {
     "build": "rollup -c",
