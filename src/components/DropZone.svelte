@@ -3,7 +3,19 @@
     import { reader } from '../reader/reader'
 
     let isDropping = false;
-    let file = false;
+    let file = null;
+    let errorMessage = null;
+
+    //Define the input file browse events
+    const selectedFile = (e) => {
+        e.preventDefault()
+        errorMessage = null
+
+        //If a file was chosen, store it
+        if (e.target.files.length) {
+            file = e.target.files[0]
+        }
+    }
 
     //Define the drag/drop events
     const preventDefaults = (e) => {
@@ -14,6 +26,7 @@
     const onDragEnter = (e) => {
         preventDefaults(e)
         isDropping = true
+        errorMessage = null
     }
 
     const onDragOver = (e) => {
@@ -29,8 +42,20 @@
     const onDrop = (e) => {
         preventDefaults(e)
         isDropping = false
-        file = e.dataTransfer.files[0];
-        getFileInfo(file)
+
+        //Ensure file is a tiff
+        if (e.dataTransfer.files[0].type == "image/tiff") {
+            file = e.dataTransfer.files[0];
+            getFileInfo(file)
+        } else {
+            errorMessage = "File was not a tiff :("
+            file = null
+        }
+    }
+
+    const onClick = (e) => {
+        //Get the hidden input and click
+        document.getElementById("hiddenFileInput").click()
     }
 
     //Handle the actually file reading
@@ -41,28 +66,40 @@
     //Update the dropzone style depending on whether we're in process of dropping/already have a file
     let dropzoneClasses = null
     $: {
-        dropzoneClasses = "w-full h-full bg-gray-200 rounded-lg"
-        if (isDropping) { dropzoneClasses += " bg-blue-200"}
-        else if (file) { dropzoneClasses += " bg-green-200"}
+        dropzoneClasses = "w-full h-full bg-gray-200 rounded-lg cursor-pointer"
+        if (errorMessage) { dropzoneClasses += " border-dashed border-4 border-red-500"}
+        else if (isDropping) { dropzoneClasses += " border-dashed border-4 border-green-500"}
+        else if (file) { dropzoneClasses += " border-4 border-green-400"}
     }
 
 </script>
 
-<div class="w-full h-full p-8">
+<div class="w-full h-full">
+    <input 
+        id="hiddenFileInput" 
+        type="file" 
+        class="hidden" 
+        accept="image/tiff"
+        on:change={selectedFile}
+    />
     <div
         class={dropzoneClasses}
         on:dragenter={onDragEnter}
         on:dragover={onDragOver}
         on:dragleave={onDragLeave}
         on:drop={onDrop}
+        on:click={onClick}
     >
-        <div class="h-full flex justify-center items-center text-2xl text-gray-600">
+        <div class="h-full flex flex-col justify-center items-center text-gray-600 font-light">
             {#if isDropping}
-                <p>Let go to read the file!</p>
+                <p>Let go to try and read the file!</p>
             {:else if file}
                 <p>Current file is {file.name}</p>
+                <p>Drag another file here or click to browse</p>
+            {:else if errorMessage}
+                <p>{errorMessage}</p>
             {:else}
-                <p>Drop a file here!</p>
+                <p>Drag a file here or click to browse</p>
             {/if}
         </div>
     </div>

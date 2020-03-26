@@ -1,8 +1,12 @@
 {
   "version": 3,
   "file": "bundle.css",
-  "sources": [],
-  "sourcesContent": [],
+  "sources": [
+    "../../App.svelte"
+  ],
+  "sourcesContent": [
+    "<script>\n\timport DropZone from './components/DropZone.svelte'\n\n</script>\n\n<style>\n\t#geodeTitle{\n\t\tfont-family: 'Miriam Libre', sans-serif;\n\t}\n</style>\n\n<main class=\"w-full h-full\">\n\t<div>\n\t\t<h1 id=\"geodeTitle\">Geode</h1>\n\t</div>\n\t<DropZone />\n</main>"
+  ],
   "names": [],
-  "mappings": ""
+  "mappings": "AAMC,yBAAW,CAAC,AACX,WAAW,CAAE,cAAc,CAAC,CAAC,UAAU,AACxC,CAAC"
 }

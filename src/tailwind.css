@@ -7,4 +7,8 @@ html, body {
     height: 100%;
 }
 
+#geodeTitle{
+    font-family: 'Miriam Libre', sans-serif;
+}
+
 @import "tailwindcss/utilities";
