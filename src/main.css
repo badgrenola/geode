@@ -1,0 +1,10 @@
+@import "tailwindcss/base";
+@import "tailwindcss/components";
+
+/* Ensure page is full height */
+html, body { 
+    width: 100%;
+    height: 100%;
+}
+
+@import "tailwindcss/utilities";
