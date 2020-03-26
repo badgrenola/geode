@@ -94,7 +94,7 @@
         on:click={onClick}
     >
         <div class="h-full flex flex-col justify-center items-center text-gray-600 font-light text-sm sm:text-base">
-            <div class="p-4">
+            <div class="p-4 text-center">
                 {#if isDropping}
                     <p>Let go to try and read the file!</p>
                 {:else if file}
