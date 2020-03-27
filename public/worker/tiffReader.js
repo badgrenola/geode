@@ -36,7 +36,10 @@ class TiffReader {
     async startReading() {
         await this.getHeaderInfo()
         await this.readIFD(this.headerInfo.firstIFDOffset)
-        this.onLoadCallback(`${this.ifds[0].fieldDicts.length} Fields Found in the first IFD`)
+
+        //Get the field list and return
+        const fieldList = this.ifds[0].fieldDicts.map(fieldDict => fieldDict.fieldName)
+        this.onLoadCallback(fieldList)
     }
 
     async getUInt8ByteArray(offset, length) {
@@ -169,8 +172,9 @@ class TiffReader {
 
         */
 
-        //Get the ID
+        //Get the ID + corresponding name
         const fieldID = this.getUInt16FromBytes(fieldBytes.slice(0, 2))
+        const fieldName = tiffFields[fieldID]
 
         //Get the Data Type
         const dataTypeID = this.getUInt16FromBytes(fieldBytes.slice(2, 4))
@@ -187,6 +191,7 @@ class TiffReader {
         
         return {
             fieldID, 
+            fieldName,
             dataType,
             valuesCount,
             fieldValue,

@@ -141,7 +141,7 @@
                     <p>Let go to try and read the file!</p>
                 {:else if file}
                     <p>Current file is : <i>{file.name}</i></p>
-                    <p class="mt-4">{fileDetails}</p>
+                    <p class="mt-4">It contains the following fields : {fileDetails.join(", ")}</p>
                     {#if isMobile}
                         <p class="mt-4">Click her to browse for another file on your device</p>
                     {:else}
