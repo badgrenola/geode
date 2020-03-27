@@ -8,7 +8,7 @@
     let worker = new Worker("./worker/geodeWW.js")
     worker.onmessage = function(e){
 		//Update the state from the worker info
-		fileDetails = JSON.stringify(e.data)
+		fileDetails = e.data
 	};
 	
 	//Handle the actually file reading
