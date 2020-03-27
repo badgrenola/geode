@@ -1,14 +1,7 @@
 <script>
 
-    // import { reader } from '../reader/reader'
-
-    //Setup the web worker
-    let worker = new Worker("./worker/test.js")
-    worker.onmessage = function(e){
-        //Update the state from the worker info
-        fileDetails = e.data
-        loading = false
-    };
+    //Expect a callback function
+    export let onFileSelected = null
 
     //Setup the state
     let isDropping = false
@@ -31,7 +24,7 @@
         //If a file was chosen, store it
         if (e.target.files.length) {
             file = e.target.files[0]
-            getFileInfo(file)
+            fileSelected(file)
         }
     }
 
@@ -84,7 +77,7 @@
         //Ensure file is a tiff
         if (e.dataTransfer.files[0].type == allowedType) {
             file = e.dataTransfer.files[0];
-            getFileInfo(file)
+            fileSelected(file)
         } else {
             errorMessage = "File was not a tiff :("
             file = null
@@ -97,16 +90,16 @@
     }
 
     //Handle the actually file reading
-    const getFileInfo = (file) => {
+    const fileSelected = (file) => {
 
         //Clear the old file details
         fileDetails = null
 
-        //Post file to webworker for reading
-        worker.postMessage(file);
-
         //Set state to loading
         loading = true
+
+        //Run the file selected callback
+        if (onFileSelected) { onFileSelected(file) }
     }
 
     //Update the dropzone style depending on whether we're in process of dropping/already have a file
