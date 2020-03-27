@@ -1,16 +1,24 @@
 <script>
 
-    import { reader } from '../reader/reader'
+    // import { reader } from '../reader/reader'
 
-    let w = new Worker("./worker/test.js")
-    let count = 0
-    w.onmessage = function(event){
-        count = event.data
+    //Setup the web worker
+    let worker = new Worker("./worker/test.js")
+    worker.onmessage = function(e){
+        //Update the state from the worker info
+        fileDetails = e.data
+        loading = false
     };
 
-    let isDropping = false;
-    let file = null;
-    let errorMessage = null;
+    //Setup the state
+    let isDropping = false
+    let file = null
+    let errorMessage = null
+    let loading = false
+    let fileDetails = null
+
+    //Set the allowed types
+    let allowedType = "image/tiff"
 
     //Check for touch events
     let isMobile = (('ontouchstart' in window) || (navigator.MaxTouchPoints > 0) || (navigator.msMaxTouchPoints > 0))
@@ -23,6 +31,7 @@
         //If a file was chosen, store it
         if (e.target.files.length) {
             file = e.target.files[0]
+            getFileInfo(file)
         }
     }
 
@@ -34,26 +43,46 @@
 
     const onDragEnter = (e) => {
         preventDefaults(e)
+
+        //Don't do anything if we're already loading
+        if (loading) { return }
+
+        //Update state
         isDropping = true
         errorMessage = null
     }
 
     const onDragOver = (e) => {
         preventDefaults(e)
+
+        //Don't do anything if we're already loading
+        if (loading) { return }
+
+        //Update state
         isDropping = true
     }
 
     const onDragLeave = (e) => {
         preventDefaults(e)
+
+        //Don't do anything if we're already loading
+        if (loading) { return }
+
+        //Update state
         isDropping = false
     }
 
     const onDrop = (e) => {
         preventDefaults(e)
+
+        //Don't do anything if we're already loading
+        if (loading) { return }
+
+        //Update state
         isDropping = false
 
         //Ensure file is a tiff
-        if (e.dataTransfer.files[0].type == "image/tiff") {
+        if (e.dataTransfer.files[0].type == allowedType) {
             file = e.dataTransfer.files[0];
             getFileInfo(file)
         } else {
@@ -69,7 +98,15 @@
 
     //Handle the actually file reading
     const getFileInfo = (file) => {
-        reader.readAsText(file)
+
+        //Clear the old file details
+        fileDetails = null
+
+        //Post file to webworker for reading
+        worker.postMessage(file);
+
+        //Set state to loading
+        loading = true
     }
 
     //Update the dropzone style depending on whether we're in process of dropping/already have a file
@@ -88,8 +125,8 @@
         id="hiddenFileInput" 
         type="file" 
         class="hidden" 
-        accept="image/tiff"
         on:change={selectedFile}
+        accept={allowedType}
     />
     <div
         class={dropzoneClasses}
@@ -100,24 +137,26 @@
         on:click={onClick}
     >
         <div class="h-full flex flex-col justify-center items-center text-gray-600 font-light text-sm sm:text-base">
-            {count}
             <div class="p-4 text-center">
-                {#if isDropping}
-                    <span>Let go to try and read the file!</span>
+                {#if loading}
+                    <p> Loading...</p>
+                {:else if isDropping}
+                    <p>Let go to try and read the file!</p>
                 {:else if file}
-                    <span>Current file is : <i>{file.name}</i></span>
+                    <p>Current file is : <i>{file.name}</i></p>
+                    <p class="mt-4">{fileDetails}</p>
                     {#if isMobile}
-                        <span class=" mt-4">Click her to browse for another file on your device</span>
+                        <p class="mt-4">Click her to browse for another file on your device</p>
                     {:else}
-                        <span class=" mt-4">Drag another file here or click to browse</span>
-                    {/getFileInfo}
+                        <p class="mt-4">Drag another file here or click to browse</p>
+                    {/if}
                 {:else if errorMessage}
-                    <span>{errorMessage}</span>
+                    <p>{errorMessage}</p>
                 {:else}
                     {#if isMobile}
-                        <span>Click here to browse for a file on your device</span>   
+                        <p>Click here to browse for a file on your device</p>   
                     {:else}
-                        <span>Drag a file here or click to browse</span>   
+                        <p>Drag a file here or click to browse</p>   
                     {/if}
                 {/if}
             </div>
