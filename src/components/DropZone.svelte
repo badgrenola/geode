@@ -113,6 +113,8 @@
         else if (file) { dropzoneClasses += " border-4 border-green-400"}
     }
 
+    //Auto fill item
+
 </script>
 
 <div class="w-full h-full">

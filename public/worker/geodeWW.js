@@ -7,15 +7,16 @@ function requireWW(moduleName) {
 }
 
 //Import the reader
-requireWW('./reader.js') // Needs full file name + ext
-
-//Set the reader onload callback
-setReaderOnLoadCallback((arrayBuffer) => {
-  postMessage(`Array Buffer is ${arrayBuffer.byteLength} bytes long`)
-})
+requireWW('./tiffReader.js') // Needs full file name + ext
 
 //Setup the on message
 onmessage = (e) => {
-  //Start reading the file
-  reader.readAsArrayBuffer(e.data)
+
+  //Get the file
+  const file = e.data
+
+  //Pass to the tiff reader to begin reading
+  const tiffReader = new TiffReader(file, (headerDict) => {
+    postMessage(headerDict)
+  })
 }
