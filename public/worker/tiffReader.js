@@ -12,9 +12,6 @@ const DataType = {
 	Double: 8
 }
 
-
-const range = (length) => [...Array(length).keys()]
-
 class TiffReader {
     constructor(file, onLoadCallback){
         console.log("TiffReader : Reading " + file.name)        
@@ -29,11 +26,12 @@ class TiffReader {
         this.headerInfo = {}
         this.ifds = []
 
-        //Start reading
+        //Immediately start reading the file data
         this.startReading()
     }
 
     async startReading() {
+        //Get the header info
         await this.getHeaderInfo()
 
         //Parse the initial IFD and return the next IFD offset 
@@ -53,12 +51,18 @@ class TiffReader {
     }
 
     async getUInt8ByteArray(offset, length) {
+        //Get an array buffer from the file
         const buffer = await new Response(this.file.slice(offset, offset+length)).arrayBuffer()
+
+        //Return as a UInt8 Array
         return new Uint8Array(buffer)
     }
 
     getUInt16FromBytes(bytes) {
+        //Ensure we have 2 bytes
         if (bytes.byteLength !== 2) { console.error("Need 2 bytes for a UInt16"); return null; }
+
+        //Check byteorder and return using DataView to set endianness appropriately
         if (this.headerInfo.byteOrder === ByteOrder.LittleEndian) {
             return new DataView(bytes.buffer).getUint16(0, true)
         } 
@@ -66,7 +70,10 @@ class TiffReader {
     }
 
     getUInt32FromBytes(bytes) {
+        //Ensure we have 4 bytes
         if (bytes.byteLength !== 4) { console.error("Need 4 bytes for a UInt32"); return null; }
+
+        //Check byteorder and return using DataView to set endianness appropriately
         if (this.headerInfo.byteOrder === ByteOrder.LittleEndian) {
             return new DataView(bytes.buffer).getUint32(0, true)
         }
@@ -74,7 +81,7 @@ class TiffReader {
     }
 
     async getHeaderInfo() {
-
+        console.log("Getting Header Info")
         //Clear the dict
         this.headerInfo = {}
 
@@ -101,7 +108,6 @@ class TiffReader {
     }
 
     async readIFD(offset) {
-        
         console.log(`Reading IFD starting at offset : ${offset}`)
         
         //Store field dicts
@@ -125,6 +131,7 @@ class TiffReader {
             fieldDicts.push(fieldDict)
         })
 
+        //Store the IFD data
         this.ifds.push({
             offset: offset,
             fieldDicts
@@ -156,28 +163,6 @@ class TiffReader {
     }
 
     async parseField(fieldBytes) {
-        /*
-
-        #Get the ID of the field. This is the first 2 bytes as an int
-        fieldID = int.from_bytes(fieldBytes[0:2], byteOrder)
-
-        #Lookup the ID to get the field Name
-        fieldName = fieldNames[fieldID]
-
-        #Now get the data type of the field. This is the 3rd/4th byte of the field
-        fieldDataType = getFieldDataTypeFromInt(int.from_bytes(fieldBytes[2:4], byteOrder))
-
-        #Count the values in the field. This is bytes 5-8
-        fieldValueCount = int.from_bytes(fieldBytes[4:8], byteOrder)
-
-        #Get the field's number. This could be a value or an offset. It's the final 4 bytes
-        fieldNumber = int.from_bytes(fieldBytes[8:], byteOrder)
-
-        #Now figure out if that's a value or an offset
-        fieldNumberIsOffset = (fieldValueCount * fieldDataType.value) > 4
-
-        */
-
         //Get the ID + corresponding name
         const fieldID = this.getUInt16FromBytes(fieldBytes.slice(0, 2))
         const fieldName = tiffFields[fieldID]
@@ -203,7 +188,6 @@ class TiffReader {
             fieldValue,
             fieldValueIsOffset
         }
-
     }
 }
 
