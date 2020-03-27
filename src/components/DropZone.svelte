@@ -140,8 +140,8 @@
                 {:else if isDropping}
                     <p>Let go to try and read the file!</p>
                 {:else if file}
-                    <p>Current file is : <i>{file.name}</i></p>
-                    <p class="mt-4 text-xs">It contains the following fields : {fileDetails.join(", ")}</p>
+                    <p><i>{file.name}</i> contains the following fields</p>
+                    <p class="mt-4 text-xs">{fileDetails.join(", ")}</p>
                     {#if isMobile}
                         <p class="mt-4">Click her to browse for another file on your device</p>
                     {:else}
