@@ -80,6 +80,17 @@ class TiffReader {
         return new DataView(bytes.buffer).getUint32(0, false)
     }
 
+    getDoubleFromBytes(bytes) {
+        //Ensure we have 8 bytes
+        if (bytes.byteLength !== 8) { console.error("Need 8 bytes for a Double"); return null; }
+
+        //Check byteorder and return using DataView to set endianness appropriately
+        if (this.headerInfo.byteOrder === ByteOrder.LittleEndian) {
+            return new DataView(bytes.buffer).getFloat64(0, true)
+        }
+        return new DataView(bytes.buffer).getFloat64(0, false)
+    }
+
     getUInt16sFromBytes(bytes) {
         //Ensure we have an even number of bytes
         if (bytes.byteLength %2 != 0) { console.error("Need an even number of bytes for a UInt16 array"); return null; }
@@ -92,11 +103,23 @@ class TiffReader {
 
     getUInt32sFromBytes(bytes) {
         //Ensure we have an even number of bytes
+        if (bytes.byteLength %2 != 0) { console.error("Need an even number of bytes for a UInt32 array"); return null; }
         let offset = 0
         return range(bytes.byteLength / 4).map (index => { 
             offset = index * 4
             return this.getUInt32FromBytes(bytes.slice(offset, offset + 4))
         })
+    }
+
+    getDoublesFromBytes(bytes) {
+        //Ensure we have an even number of bytes
+        if (bytes.byteLength %2 != 0) { console.error("Need an even number of bytes for a UInt32 array"); return null; }
+        let offset = 0
+        return range(bytes.byteLength / 8).map (index => { 
+            offset = index * 8
+            return this.getDoubleFromBytes(bytes.slice(offset, offset + 8))
+        })
+
     }
 
     getValues(bytes, dataType) {
@@ -109,6 +132,9 @@ class TiffReader {
                 break
             case DataType.Long:
                 return this.getUInt32sFromBytes(bytes)
+                break
+            case DataType.Double:
+                return this.getDoublesFromBytes(bytes)
                 break
             default: 
                 return null
@@ -236,17 +262,18 @@ class TiffReader {
         }
     }
 
-    async getFieldData(fieldValue, fieldValueIsOffset, valuesCount, dataType) {
+    async getFieldData(value, valueIsOffset, valuesCount, dataType) {
         //If the field value is not an offset, just return the value
         //TODO - Lookups
-        if (!fieldValueIsOffset && valuesCount === 1) { return fieldValue }
+        if (!valueIsOffset && valuesCount === 1) { return value }
 
         //Get the bytes
         const byteLength = dataType * valuesCount
-        const dataBytes = await this.getUInt8ByteArray(fieldValue, byteLength)
+        const dataBytes = await this.getUInt8ByteArray(value, byteLength)
 
         //Get the values from the bytes
-        return this.getValues(dataBytes, dataType)
+        const values = this.getValues(dataBytes, dataType)
+        return values
     }
 }
 
