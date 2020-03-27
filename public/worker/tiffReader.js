@@ -35,10 +35,20 @@ class TiffReader {
 
     async startReading() {
         await this.getHeaderInfo()
-        await this.readIFD(this.headerInfo.firstIFDOffset)
+
+        //Parse the initial IFD and return the next IFD offset 
+        let nextIFDOffset = await this.readIFD(this.headerInfo.firstIFDOffset)
+
+        //Continue parsing IFDs until the next offset is 0
+        while (nextIFDOffset > 0) {
+            nextIFDOffset = await this.readIFD(nextIFDOffset)
+        }
+        console.log("Last IFD read successfully")
 
         //Get the field list and return
         const fieldList = this.ifds[0].fieldDicts.map(fieldDict => fieldDict.fieldName)
+
+        //Run the finished callback
         this.onLoadCallback(fieldList)
     }
 
@@ -123,11 +133,7 @@ class TiffReader {
         //The next 4 bytes will either be 0 if this was the last IFD, or an offset to where the next one starts
         const nextIFDOffsetBytes = await this.getUInt8ByteArray(offset + 2 + (fieldCount*12), 4)
         const nextIFDOffset = this.getUInt32FromBytes(nextIFDOffsetBytes)
-        if (nextIFDOffset > 0) {
-            this.readIFD(nextIFDOffset)
-        } else {
-            console.log("Last IFD read successfully")
-        }
+        return nextIFDOffset
     }
 
     getDataTypeFromID(id) {
