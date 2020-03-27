@@ -2,6 +2,12 @@
 
     import { reader } from '../reader/reader'
 
+    let w = new Worker("./worker/test.js")
+    let count = 0
+    w.onmessage = function(event){
+        count = event.data
+    };
+
     let isDropping = false;
     let file = null;
     let errorMessage = null;
@@ -94,6 +100,7 @@
         on:click={onClick}
     >
         <div class="h-full flex flex-col justify-center items-center text-gray-600 font-light text-sm sm:text-base">
+            {count}
             <div class="p-4 text-center">
                 {#if isDropping}
                     <span>Let go to try and read the file!</span>
