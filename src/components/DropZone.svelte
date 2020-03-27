@@ -2,13 +2,18 @@
 
     //Expect a callback function
     export let onFileSelected = null
+    export let fileDetails = null
 
     //Setup the state
     let isDropping = false
     let file = null
     let errorMessage = null
     let loading = false
-    let fileDetails = null
+
+    $: { 
+        //If we have file details, stop loading
+        if (fileDetails) loading = false
+    }
 
     //Set the allowed types
     let allowedType = "image/tiff"
@@ -91,9 +96,6 @@
 
     //Handle the actually file reading
     const fileSelected = (file) => {
-
-        //Clear the old file details
-        fileDetails = null
 
         //Set state to loading
         loading = true
