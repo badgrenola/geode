@@ -28,7 +28,7 @@
 
 <main class="w-full h-full">
 	<div class="container mx-auto flex flex-col h-full">
-		<div class="flex flex-col justify-center items-center pt-8">
+		<div class="flex flex-col justify-center items-center pt-8 mx-8">
 			<h1 id="geodeTitle" class="text-green-500 text-4xl tracking-superwide -mr-4 sm:text-5xl sm:tracking-superwider sm:-mr-8 ">Geode</h1>
 			<h2 class="text-center text-gray-600 font-light -mt-1 sm:text-l sm:-mt-2">A (soon-to-be) really very helpful GeoTIFF previewer</h2>
 		</div>
