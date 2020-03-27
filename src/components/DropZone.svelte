@@ -106,7 +106,11 @@
                     <span>Let go to try and read the file!</span>
                 {:else if file}
                     <span>Current file is : <i>{file.name}</i></span>
-                    <span class=" mt-4">Drag another file here or click to browse</span>
+                    {#if isMobile}
+                        <span class=" mt-4">Click her to browse for another file on your device</span>
+                    {:else}
+                        <span class=" mt-4">Drag another file here or click to browse</span>
+                    {/getFileInfo}
                 {:else if errorMessage}
                     <span>{errorMessage}</span>
                 {:else}
