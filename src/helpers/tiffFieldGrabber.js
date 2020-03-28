@@ -5,7 +5,7 @@ In order to grab the gigantic list of Tiff fields from the table on the site abo
 I copied the entire table element from that site into the sourceData var below, and then ran the following code.
 Instead of dealing with file I/O I then simply copied the result into the tiffFields.js file, cleaned up and exported.
 
-This is obviously not hte best code in the world, but it's quick and gets the job done :)
+This is obviously not the best code in the world, but it's quick and gets the job done :)
 */
 const sourceData = ``
 
