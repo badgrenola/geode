@@ -7,10 +7,21 @@
 	let errorMessage = null
 
 	//Setup the web worker
-    let worker = new Worker("./worker/geodeWW.js")
+    const worker = new Worker("./worker/geodeWW.js")
     worker.onmessage = function(e){
-		//Update the state from the worker info
-		fileDetails = e.data
+		//Get the result
+		const result = e.data
+
+		//Look for errors first
+		if (!result || result.error) {
+			//An error was found
+			errorMessage = result.error
+		} else {
+			//No error was found
+			fileDetails = result.data
+		}
+
+		//Switch loading state to false
 		loading = false
 	};
 	

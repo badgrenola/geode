@@ -15,18 +15,22 @@ const DataType = {
 const range = (length) => [...Array(length).keys()]
 
 class TiffReader {
-    constructor(file, onLoadCallback){
+    constructor(file, onLoadCallback, onErrorCallback){
         console.log("TiffReader : Reading " + file.name)        
 
         //Store the file
         this.file = file
 
-        //Store the callback
+        //Store the callbacks
         this.onLoadCallback = onLoadCallback
+        this.onErrorCallback = onErrorCallback
 
         //Setup the required vars
         this.headerInfo = {}
         this.ifds = []
+
+        //Store any errors
+        this.error = null
 
         //Immediately start reading the file data
         this.startReading()
@@ -35,6 +39,13 @@ class TiffReader {
     async startReading() {
         //Get the header info
         await this.getHeaderInfo()
+
+        //Check that we have no errors
+        if (this.error) {
+            //Error found, abort the process
+            this.onErrorCallback(this.error)
+            return
+        }
 
         //Parse the initial IFD and return the next IFD offset 
         let nextIFDOffset = await this.readIFD(this.headerInfo.firstIFDOffset)
@@ -160,6 +171,8 @@ class TiffReader {
         //Query the magic number to ensure this is a tiff fil
         if (initialBytes[2] != 42) {
             console.error(initialBytes, "Not a tiff file")
+            this.error = "Not a tiff file"
+            return
         } else {
             this.headerInfo.isTiff = true
         }

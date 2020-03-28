@@ -121,12 +121,17 @@
                     <p>Let go to try and read the file!</p>
                 {:else if success}
                     {#if isMobile}
+                        <p class="mt-4">Success! Click her to browse for another file on your device</p>
+                    {:else}
+                        <p class="mt-4">Success! Drag another file here or click to browse</p>
+                    {/if}
+                {:else if errorMessage}
+                    <p>Error : {errorMessage}</p>
+                    {#if isMobile}
                         <p class="mt-4">Click her to browse for another file on your device</p>
                     {:else}
                         <p class="mt-4">Drag another file here or click to browse</p>
                     {/if}
-                {:else if errorMessage}
-                    <p>{errorMessage}</p>
                 {:else}
                     {#if isMobile}
                         <p>Click here to browse for a file on your device</p>   

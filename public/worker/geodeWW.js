@@ -17,7 +17,7 @@ onmessage = (e) => {
   const file = e.data
 
   //Pass to the tiff reader to begin reading
-  const tiffReader = new TiffReader(file, (headerDict) => {
-    postMessage(headerDict)
-  })
+  const onLoad = (fileInfo) => { postMessage({data:fileInfo, error:null}) }
+  const onError = (errorMessage) => { postMessage({data:null, error:errorMessage}) }
+  const tiffReader = new TiffReader(file, onLoad, onError)
 }
