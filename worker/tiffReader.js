@@ -267,7 +267,7 @@ class TiffReader {
             //We need to handle RGB images, which store bits in an array
             //All channels will have same bit rate so we can just grab the first value
             let comparitor = bits
-            if (typeof bits === "array") { comparitor = bits[0]}
+            if (typeof bits === "array" || typeof bits === "object") { comparitor = bits[0] }
             switch (comparitor) {
                 case 8 :
                     successString += "8-bit"
