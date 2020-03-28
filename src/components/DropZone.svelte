@@ -3,7 +3,6 @@
     //Setup the props
     export let loading = false
     export let errorMessage = null
-    export let successMessage = null
     export let success = false
     export let onFileSelected = null
     export let allowedType = "image/tiff"
@@ -127,9 +126,7 @@
                 {:else if isDropping}
                     <p>Let go to try and read the file!</p>
                 {:else if success}
-                    {#if successMessage}
-                        <p class="text-xs sm:text-sm">{@html successMessage}</p>
-                    {/if}
+                    <slot name="success"></slot>
                     <p class="mt-4">{interactionMessage}</p>
                 {:else if errorMessage}
                     <p>Error : {errorMessage}</p>

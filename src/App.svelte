@@ -6,7 +6,6 @@
 	let loading = false
 	let fileDetails = null
 	let errorMessage = null
-	let successMessage = null
 
 	//Setup the web worker
     const worker = new Worker("./worker/geodeWW.js")
@@ -21,7 +20,6 @@
 		} else {
 			//No error was found
 			fileDetails = result.data
-			successMessage = result.successMessage
 		}
 
 		//Switch loading state to false
@@ -36,7 +34,6 @@
 		//Set the state
 		fileDetails = null
 		errorMessage = null
-		successMessage = null
 		loading = true
 	}
 
@@ -55,9 +52,15 @@
 				loading={loading}
 				success={!loading && fileDetails && !errorMessage}
 				errorMessage={errorMessage}
-				successMessage={successMessage}
 				onFileSelected={onFileSelected}
-			/>
+			>
+				<span slot="success">
+					<p class="text-xs sm:text-sm">{@html fileDetails.fileSummary}</p>
+					<span class="text-xs">
+						{@html fileDetails.ifdSummaries[0]}
+					</span>
+				</span>
+			</DropZone>
 		</div>
 		<Footer />
 	</div>
