@@ -346,5 +346,5 @@ const tiffFields = {
 	51110: "DefaultBlackRender",
 	51111: "NewRawImageDigest",
 	51112: "RawToPreviewGain",
-	51125: "DefaultUserCrop",
+	51125: "DefaultUserCrop"
 }
