@@ -3,6 +3,7 @@
     //Setup the props
     export let loading = false
     export let errorMessage = null
+    export let successMessage = null
     export let success = false
     export let onFileSelected = null
     export let allowedType = "image/tiff"
@@ -120,10 +121,13 @@
                 {:else if isDropping}
                     <p>Let go to try and read the file!</p>
                 {:else if success}
+                    {#if successMessage}
+                        <p>{successMessage}</p>
+                    {/if}
                     {#if isMobile}
-                        <p class="mt-4">Success! Click her to browse for another file on your device</p>
+                        <p class="mt-4">{!successMessage && "Success! "}Click her to browse for another file on your device</p>
                     {:else}
-                        <p class="mt-4">Success! Drag another file here or click to browse</p>
+                        <p class="mt-4">{!successMessage && "Success! "}Drag another file here or click to browse</p>
                     {/if}
                 {:else if errorMessage}
                     <p>Error : {errorMessage}</p>
