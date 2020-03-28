@@ -1,44 +1,25 @@
 <script>
 
-    //Expect a callback function
+    //Setup the props
+    export let loading = false
+    export let errorMessage = null
+    export let success = false
     export let onFileSelected = null
-    export let fileDetails = null
+    export let allowedType = "image/tiff"
 
-    //Setup the state
+    //Setup the internal state
     let isDropping = false
-    let file = null
-    let errorMessage = null
-    let loading = false
-
-    $: { 
-        //If we have file details, stop loading
-        if (fileDetails) loading = false
-    }
-
-    //Set the allowed types
-    let allowedType = "image/tiff"
 
     //Check for touch events
     let isMobile = (('ontouchstart' in window) || (navigator.MaxTouchPoints > 0) || (navigator.msMaxTouchPoints > 0))
 
-    //Define the input file browse events
-    const selectedFile = (e) => {
-        e.preventDefault()
-        errorMessage = null
-
-        //If a file was chosen, store it
-        if (e.target.files.length) {
-            file = e.target.files[0]
-            fileSelected(file)
-        }
-    }
-
-    //Define the drag/drop events
+    //Helper function to prevent event defaults/bubbling
     const preventDefaults = (e) => {
         e.preventDefault()
         e.stopPropagation()
     }
 
+    //Define the drag/drop events
     const onDragEnter = (e) => {
         preventDefaults(e)
 
@@ -47,7 +28,6 @@
 
         //Update state
         isDropping = true
-        errorMessage = null
     }
 
     const onDragOver = (e) => {
@@ -81,27 +61,29 @@
 
         //Ensure file is a tiff
         if (e.dataTransfer.files[0].type == allowedType) {
-            file = e.dataTransfer.files[0];
-            fileSelected(file)
+            if (onFileSelected) { onFileSelected(e.dataTransfer.files[0]) }
         } else {
             errorMessage = "File was not a tiff :("
             file = null
         }
     }
 
+    //Setup the methods for click/file select
     const onClick = (e) => {
+        //Don't do anything if we're already loading
+        if (loading) { return }
+
         //Get the hidden input and click
         document.getElementById("hiddenFileInput").click()
     }
 
-    //Handle the actually file reading
-    const fileSelected = (file) => {
+    const selectedFile = (e) => {
+        preventDefaults(e)
 
-        //Set state to loading
-        loading = true
-
-        //Run the file selected callback
-        if (onFileSelected) { onFileSelected(file) }
+        //If a file was chosen, run the callback
+        if (e.target.files.length) {
+            if (onFileSelected) { onFileSelected(e.target.files[0]) }
+        }
     }
 
     //Update the dropzone style depending on whether we're in process of dropping/already have a file
@@ -110,10 +92,8 @@
         dropzoneClasses = "w-full h-full bg-gray-200 rounded-lg cursor-pointer"
         if (errorMessage) { dropzoneClasses += " border-dashed border-4 border-red-500"}
         else if (isDropping) { dropzoneClasses += " border-dashed border-4 border-green-500"}
-        else if (file) { dropzoneClasses += " border-4 border-green-400"}
+        else if (success) { dropzoneClasses += " border-4 border-green-400"}
     }
-
-    //Auto fill item
 
 </script>
 
@@ -139,9 +119,7 @@
                     <p> Loading...</p>
                 {:else if isDropping}
                     <p>Let go to try and read the file!</p>
-                {:else if file}
-                    <p><i>{file.name}</i> contains the following fields</p>
-                    <p class="mt-4 text-xs">{fileDetails.join(", ")}</p>
+                {:else if success}
                     {#if isMobile}
                         <p class="mt-4">Click her to browse for another file on your device</p>
                     {:else}
