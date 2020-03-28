@@ -7,6 +7,10 @@ const DataType = {
 }
 
 const range = (length) => [...Array(length).keys()]
+const roundToDP = (num, dp) => {
+    const divisor = Math.pow(10, dp)
+    return Math.round((num + Number.EPSILON) * divisor) / divisor
+}
 
 class TiffReader {
     constructor(file, onLoadCallback, onErrorCallback){
@@ -236,47 +240,77 @@ class TiffReader {
         const tileCount = this.getKeyValueFromFieldWithNameOrNull(fields, "TileOffsets", "valuesCount")
         const tileW = this.getKeyValueFromFieldWithNameOrNull(fields, "TileWidth", "data")
         const tileH = this.getKeyValueFromFieldWithNameOrNull(fields, "TileLength", "data")
+        const stripCount = this.getKeyValueFromFieldWithNameOrNull(fields, "StripOffsets", "valuesCount")
+        const rowsPerStrip = this.getKeyValueFromFieldWithNameOrNull(fields, "RowsPerStrip", "valuesCount")
         const gdalMeta = this.getKeyValueFromFieldWithNameOrNull(fields, "GDAL_METADATA", "data")
         const geoAscii = this.getKeyValueFromFieldWithNameOrNull(fields, "GeoAsciiParamsTag", "data")
         const modelPixelScale = this.getKeyValueFromFieldWithNameOrNull(fields, "ModelPixelScaleTag", "data")
 
+        //Name and Resolution
+        let successString = `${this.file.name}`
+
+        //File size
+        successString += `<br />${roundToDP(this.file.size / 1000 / 1000, 2)}mb`
+
+        //IFD one
+        successString += "<br /><b>IFD 1 Details</b>"
+
         //Resolution
-        let successString = `That was a ${w}x${h}`
+        successString += `<br />${w} x ${h}`
 
         //Bit-rate
-        switch (bits) {
-            case 2:
-                successString += ", 8-bit"
-                break
-            case 4:
-                successString += ", 16-bit"
-                break
-            case 8:
-                successString += ", 32-bit"
-                break
-            default:
-                break
+        successString += "<br />"
+        if (bits) {
+            //We need to handle RGB images, which store bits in an array
+            //All channels will have same bit rate so we can just grab the first value
+            let comparitor = bits
+            if (typeof bits === "array") { comparitor = bits[0]}
+            switch (comparitor) {
+                case 8 :
+                    successString += "8-bit"
+                    break
+                case 16 :
+                    successString += "16-bit"
+                    break
+                case 32 :
+                    successString += "32-bit"
+                    break
+                default:
+                    break
+            }
         }
 
         //Grayscale/RGB
+        successString += "<br />"
         switch (samples) {
             case 1:
-                successString += ", grayscale image"
+                successString += "Grayscale"
                 break
             case 3:
-                successString += ", RGB image"
+                successString += "RGB"
                 break
             default:
                 break
         }
         
         //Tile count + resolution
-        successString += `, with ${tileCount} tiles`
-        successString += ` (each ${tileW}x${tileH}).`
+        if (tileCount && tileW && tileH) {
+            successString += "<br />"
+            successString += `${tileCount} tiles`
+            successString += ` (each ${tileW} x ${tileH})`
+        }
+
+        //Strip count + rows per strip
+        if (stripCount && rowsPerStrip) {
+            successString += "<br />"
+            successString += `${stripCount} strips`
+            successString += ` (each made up of ${rowsPerStrip} row${rowsPerStrip === 1 ? "" : "s"})`
+        }
+
 
         //GDAL meta
         successString += "<br />"
-        if (gdalMeta) { successString+= " It has GDAL Metadata."}
+        if (gdalMeta) { successString+= "It has GDAL Metadata."}
         else { successString+= "It does not have GDAL Metadata."}
 
         //Geo Ascii
@@ -285,7 +319,7 @@ class TiffReader {
         else { successString+= "It does not have Geo Ascii params."}
 
         if (modelPixelScale) {
-            successString += `<br />Model Pixel Scale is ${modelPixelScale[0]}, ${modelPixelScale[1]}, ${modelPixelScale[2]}.`
+            successString += `<br />Model Pixel Scale is ${roundToDP(modelPixelScale[0], 4)} x ${roundToDP(modelPixelScale[1], 4)}.`
         }
 
         return successString
