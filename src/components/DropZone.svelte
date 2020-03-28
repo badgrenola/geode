@@ -128,7 +128,7 @@
                     <p>Let go to try and read the file!</p>
                 {:else if success}
                     {#if successMessage}
-                        <p>{@html successMessage}</p>
+                        <p class="text-xs sm:text-sm">{@html successMessage}</p>
                     {/if}
                     <p class="mt-4">{interactionMessage}</p>
                 {:else if errorMessage}
