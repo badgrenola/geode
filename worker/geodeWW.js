@@ -9,6 +9,7 @@ function requireWW(moduleName) {
 //Import the reader
 requireWW('./tiffReader.js') // Needs full file name + ext
 requireWW('./tiffFields.js') // Needs full file name + ext
+requireWW('./bytesHelper.js') // Needs full file name + ext
 
 //Setup the on message
 onmessage = (e) => {
@@ -17,7 +18,7 @@ onmessage = (e) => {
   const file = e.data
 
   //Pass to the tiff reader to begin reading
-  const tiffReader = new TiffReader(file, (headerDict) => {
-    postMessage(headerDict)
-  })
+  const onLoad = (fileInfo, successMessage) => { postMessage({data:fileInfo, error:null, successMessage}) }
+  const onError = (errorMessage) => { postMessage({data:null, error:errorMessage, successMessage:null}) }
+  const tiffReader = new TiffReader(file, onLoad, onError)
 }

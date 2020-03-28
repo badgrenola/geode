@@ -1,9 +1,3 @@
-const ByteOrder = {
-	Null: null,
-	BigEndian: 'big',
-    LittleEndian: 'little'
-}
-
 const DataType = {
 	Nil: 0,
 	Ascii: 1,
@@ -12,29 +6,40 @@ const DataType = {
 	Double: 8
 }
 
-
 const range = (length) => [...Array(length).keys()]
 
 class TiffReader {
-    constructor(file, onLoadCallback){
+    constructor(file, onLoadCallback, onErrorCallback){
         console.log("TiffReader : Reading " + file.name)        
 
         //Store the file
         this.file = file
 
-        //Store the callback
+        //Store the callbacks
         this.onLoadCallback = onLoadCallback
+        this.onErrorCallback = onErrorCallback
 
         //Setup the required vars
         this.headerInfo = {}
         this.ifds = []
 
-        //Start reading
+        //Store any errors
+        this.error = null
+
+        //Immediately start reading the file data
         this.startReading()
     }
 
     async startReading() {
+        //Get the header info
         await this.getHeaderInfo()
+
+        //Check that we have no errors
+        if (this.error) {
+            //Error found, abort the process
+            this.onErrorCallback(this.error)
+            return
+        }
 
         //Parse the initial IFD and return the next IFD offset 
         let nextIFDOffset = await this.readIFD(this.headerInfo.firstIFDOffset)
@@ -44,42 +49,19 @@ class TiffReader {
             nextIFDOffset = await this.readIFD(nextIFDOffset)
         }
         console.log("Last IFD read successfully")
-
-        //Get the field list and return
-        const fieldList = this.ifds[0].fieldDicts.map(fieldDict => fieldDict.fieldName)
+        console.log(this.ifds)
 
         //Run the finished callback
-        this.onLoadCallback(fieldList)
-    }
-
-    async getUInt8ByteArray(offset, length) {
-        const buffer = await new Response(this.file.slice(offset, offset+length)).arrayBuffer()
-        return new Uint8Array(buffer)
-    }
-
-    getUInt16FromBytes(bytes) {
-        if (bytes.byteLength !== 2) { console.error("Need 2 bytes for a UInt16"); return null; }
-        if (this.headerInfo.byteOrder === ByteOrder.LittleEndian) {
-            return new DataView(bytes.buffer).getUint16(0, true)
-        } 
-        return new DataView(bytes.buffer).getUint16(0, false)
-    }
-
-    getUInt32FromBytes(bytes) {
-        if (bytes.byteLength !== 4) { console.error("Need 4 bytes for a UInt32"); return null; }
-        if (this.headerInfo.byteOrder === ByteOrder.LittleEndian) {
-            return new DataView(bytes.buffer).getUint32(0, true)
-        }
-        return new DataView(bytes.buffer).getUint32(0, false)
+        this.onLoadCallback(this.ifds, this.constructSuccessMessage())
     }
 
     async getHeaderInfo() {
-
+        console.log("Getting Header Info")
         //Clear the dict
         this.headerInfo = {}
 
         //Get the first 8 bytes as uint8
-        const initialBytes = await this.getUInt8ByteArray(0, 8)
+        const initialBytes = await getUInt8ByteArray(this.file, 0, 8)
 
         //Query the byte order
         if (initialBytes[0] === 73 && initialBytes[1] === 73) {
@@ -91,48 +73,51 @@ class TiffReader {
         //Query the magic number to ensure this is a tiff fil
         if (initialBytes[2] != 42) {
             console.error(initialBytes, "Not a tiff file")
+            this.error = "Not a tiff file"
+            return
         } else {
             this.headerInfo.isTiff = true
         }
 
         //Get the first section offset
-        const offset = this.getUInt32FromBytes(initialBytes.slice(4, 8))
+        const offset = getUInt32FromBytes(initialBytes.slice(4, 8), this.headerInfo.byteOrder)
         this.headerInfo.firstIFDOffset = offset
     }
 
     async readIFD(offset) {
-        
         console.log(`Reading IFD starting at offset : ${offset}`)
         
         //Store field dicts
-        let fieldDicts = []
+        let fields = []
 
         //Get the field count of the current IFD
-        const fieldCountBytes = await this.getUInt8ByteArray(offset, 2)
-        const fieldCount = this.getUInt16FromBytes(fieldCountBytes)
+        const fieldCountBytes = await getUInt8ByteArray(this.file, offset, 2)
+        const fieldCount = getUInt16FromBytes(fieldCountBytes, this.headerInfo.byteOrder)
 
         //Each field is 12 bytes long
         //Read each field and store it's bytes
         let allFieldBytes = []
         for (let i=0; i < fieldCount; i++) {
-            const bytes = await this.getUInt8ByteArray(offset + 2 + (i*12), 12) 
+            const bytes = await getUInt8ByteArray(this.file, offset + 2 + (i*12), 12) 
             allFieldBytes.push(bytes)
          }
 
         //Parse each field in turn
-        allFieldBytes.forEach(async fieldBytes => {
-            const fieldDict = await this.parseField(fieldBytes)
-            fieldDicts.push(fieldDict)
-        })
+        for (let i=0; i < fieldCount; i++) {
+            const fieldDict = await this.parseField(allFieldBytes[i])
+            fields.push(fieldDict)
+        }
 
+        //Store the IFD data
         this.ifds.push({
+            id: this.ifds.length,
             offset: offset,
-            fieldDicts
+            fields
         })
 
         //The next 4 bytes will either be 0 if this was the last IFD, or an offset to where the next one starts
-        const nextIFDOffsetBytes = await this.getUInt8ByteArray(offset + 2 + (fieldCount*12), 4)
-        const nextIFDOffset = this.getUInt32FromBytes(nextIFDOffsetBytes)
+        const nextIFDOffsetBytes = await getUInt8ByteArray(this.file, offset + 2 + (fieldCount*12), 4)
+        const nextIFDOffset = getUInt32FromBytes(nextIFDOffsetBytes, this.headerInfo.byteOrder)
         return nextIFDOffset
     }
 
@@ -156,54 +141,154 @@ class TiffReader {
     }
 
     async parseField(fieldBytes) {
-        /*
-
-        #Get the ID of the field. This is the first 2 bytes as an int
-        fieldID = int.from_bytes(fieldBytes[0:2], byteOrder)
-
-        #Lookup the ID to get the field Name
-        fieldName = fieldNames[fieldID]
-
-        #Now get the data type of the field. This is the 3rd/4th byte of the field
-        fieldDataType = getFieldDataTypeFromInt(int.from_bytes(fieldBytes[2:4], byteOrder))
-
-        #Count the values in the field. This is bytes 5-8
-        fieldValueCount = int.from_bytes(fieldBytes[4:8], byteOrder)
-
-        #Get the field's number. This could be a value or an offset. It's the final 4 bytes
-        fieldNumber = int.from_bytes(fieldBytes[8:], byteOrder)
-
-        #Now figure out if that's a value or an offset
-        fieldNumberIsOffset = (fieldValueCount * fieldDataType.value) > 4
-
-        */
-
         //Get the ID + corresponding name
-        const fieldID = this.getUInt16FromBytes(fieldBytes.slice(0, 2))
-        const fieldName = tiffFields[fieldID]
+        const id = getUInt16FromBytes(fieldBytes.slice(0, 2), this.headerInfo.byteOrder)
 
         //Get the Data Type
-        const dataTypeID = this.getUInt16FromBytes(fieldBytes.slice(2, 4))
-        const dataType = this.getDataTypeFromID(dataTypeID)
+        const dataTypeID = getUInt16FromBytes(fieldBytes.slice(2, 4), this.headerInfo.byteOrder)
 
         //Get the value count
-        const valuesCount = this.getUInt32FromBytes(fieldBytes.slice(4, 8))
+        const valuesCount = getUInt32FromBytes(fieldBytes.slice(4, 8), this.headerInfo.byteOrder)
 
         //Get the field number
-        const fieldValue = this.getUInt32FromBytes(fieldBytes.slice(8, 12))
+        const value = getUInt32FromBytes(fieldBytes.slice(8, 12), this.headerInfo.byteOrder)
+
+        //Now we have the original data, lets get the 'computed' values
+        //Get the data type
+        const dataType = this.getDataTypeFromID(dataTypeID)
 
         //Figure out of the field number is an offset or a value
-        const fieldValueIsOffset = (valuesCount * dataType) > 4
+        const valueIsOffset = (valuesCount * dataType) > 4
+
+        //Get the field name
+        const name = tiffFields[id]
+
+        //Get the data the field represents
+        const data = await this.getFieldData(value, valueIsOffset, valuesCount, dataType)
         
         return {
-            fieldID, 
-            fieldName,
+            id, 
+            name,
             dataType,
             valuesCount,
-            fieldValue,
-            fieldValueIsOffset
+            value,
+            valueIsOffset,
+            data
+        }
+    }
+
+    getValues(bytes, dataType) {
+        switch (dataType) {
+            case DataType.Ascii:
+                return String.fromCharCode.apply(null, bytes).trim()
+                break
+            case DataType.Short:
+                return getUInt16sFromBytes(bytes, this.headerInfo.byteOrder)
+                break
+            case DataType.Long:
+                return getUInt32sFromBytes(bytes, this.headerInfo.byteOrder)
+                break
+            case DataType.Double:
+                return getDoublesFromBytes(bytes, this.headerInfo.byteOrder)
+                break
+            default: 
+                return null
+                break
+        }
+    }
+
+    async getFieldData(value, valueIsOffset, valuesCount, dataType) {
+        //If the field value is not an offset, just return the value
+        //TODO - Lookups
+        if (!valueIsOffset && valuesCount === 1) { return value }
+
+        //Get the bytes
+        const byteLength = dataType * valuesCount
+        const dataBytes = await getUInt8ByteArray(this.file, value, byteLength)
+
+        //Get the values from the bytes
+        const values = this.getValues(dataBytes, dataType)
+        return values
+    }
+
+    getKeyValueFromFieldWithNameOrNull(fields, fieldName, valueKey) {
+        const field = fields.find(field => field.name === fieldName)
+        if (!field) { return null }
+        return field[valueKey]
+    }
+
+    constructSuccessMessage() {
+        /*
+            That was a XxY, Zbit, Grayscale/RGB image, with Z tiles (each XxY).
+            It has/doesn't have GDAL metadata.
+            It has/doesn't have GeoAscii params.
+            ModelPixelScale is X, Y, Z
+        */
+
+        //First IFD fields
+        const fields = this.ifds[0].fields
+
+        //Get all required data
+        const w = this.getKeyValueFromFieldWithNameOrNull(fields, "ImageWidth", "data")
+        const h = this.getKeyValueFromFieldWithNameOrNull(fields, "ImageLength", "data")
+        const bits = this.getKeyValueFromFieldWithNameOrNull(fields, "BitsPerSample", "data")
+        const samples = this.getKeyValueFromFieldWithNameOrNull(fields, "SamplesPerPixel", "data")
+        const tileCount = this.getKeyValueFromFieldWithNameOrNull(fields, "TileOffsets", "valuesCount")
+        const tileW = this.getKeyValueFromFieldWithNameOrNull(fields, "TileWidth", "data")
+        const tileH = this.getKeyValueFromFieldWithNameOrNull(fields, "TileLength", "data")
+        const gdalMeta = this.getKeyValueFromFieldWithNameOrNull(fields, "GDAL_METADATA", "data")
+        const geoAscii = this.getKeyValueFromFieldWithNameOrNull(fields, "GeoAsciiParamsTag", "data")
+        const modelPixelScale = this.getKeyValueFromFieldWithNameOrNull(fields, "ModelPixelScaleTag", "data")
+
+        //Resolution
+        let successString = `That was a ${w}x${h}`
+
+        //Bit-rate
+        switch (bits) {
+            case 2:
+                successString += ", 8-bit"
+                break
+            case 4:
+                successString += ", 16-bit"
+                break
+            case 8:
+                successString += ", 32-bit"
+                break
+            default:
+                break
         }
 
+        //Grayscale/RGB
+        switch (samples) {
+            case 1:
+                successString += ", grayscale image"
+                break
+            case 3:
+                successString += ", RGB image"
+                break
+            default:
+                break
+        }
+        
+        //Tile count + resolution
+        successString += `, with ${tileCount} tiles`
+        successString += ` (each ${tileW}x${tileH}).`
+
+        //GDAL meta
+        successString += "<br />"
+        if (gdalMeta) { successString+= " It has GDAL Metadata."}
+        else { successString+= "It does not have GDAL Metadata."}
+
+        //Geo Ascii
+        successString += "<br />"
+        if (geoAscii) { successString+= "It has Geo Ascii params."}
+        else { successString+= "It does not have Geo Ascii params."}
+
+        if (modelPixelScale) {
+            successString += `<br />Model Pixel Scale is ${modelPixelScale[0]}, ${modelPixelScale[1]}, ${modelPixelScale[2]}.`
+        }
+
+        return successString
     }
 }
 
