@@ -256,7 +256,7 @@ class TiffReader {
         successString += `<br />${this.ifds.length} Image File Directories (IFDs) found in the file`
 
         //IFD one
-        successString += "<br /><br /><span class='font-semibold'>IFD 1 Details</span>"
+        successString += "<br /><br /><span><u>IFD 1 Details</u></span>"
 
         //Resolution
         successString += `<br />${w} x ${h}`
