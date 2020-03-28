@@ -252,8 +252,11 @@ class TiffReader {
         //File size
         successString += `<br />${roundToDP(this.file.size / 1000 / 1000, 2)}mb`
 
+        //IFD count
+        successString += `<br />${this.ifds.length} Image File Directories (IFDs) found in the file`
+
         //IFD one
-        successString += "<br /><b>IFD 1 Details</b>"
+        successString += "<br /><br /><span class='font-semibold'>IFD 1 Details</span>"
 
         //Resolution
         successString += `<br />${w} x ${h}`
