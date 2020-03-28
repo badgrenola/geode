@@ -12,7 +12,13 @@
     let isDropping = false
 
     //Check for touch events
+    let interactionMessage = ""
     let isMobile = (('ontouchstart' in window) || (navigator.MaxTouchPoints > 0) || (navigator.msMaxTouchPoints > 0))
+    $: {
+        const mobile = `Click here to browse for ${success ? "another" : "a"} file on your device`
+        const desktop = `Drag ${success ? "another" : "a"} file here or click to browse`
+        interactionMessage = isMobile ? mobile : desktop
+    }
 
     //Helper function to prevent event defaults/bubbling
     const preventDefaults = (e) => {
@@ -124,24 +130,12 @@
                     {#if successMessage}
                         <p>{@html successMessage}</p>
                     {/if}
-                    {#if isMobile}
-                        <p class="mt-4">{!successMessage ? "Success! " : ""}Click her to browse for another file on your device</p>
-                    {:else}
-                        <p class="mt-4">{!successMessage ? "Success! " : ""}Drag another file here or click to browse</p>
-                    {/if}
+                    <p class="mt-4">{interactionMessage}</p>
                 {:else if errorMessage}
                     <p>Error : {errorMessage}</p>
-                    {#if isMobile}
-                        <p class="mt-4">Click here to browse for another file on your device</p>
-                    {:else}
-                        <p class="mt-4">Drag another file here or click to browse</p>
-                    {/if}
+                    <p class="mt-4">{interactionMessage}</p>
                 {:else}
-                    {#if isMobile}
-                        <p>Click here to browse for a file on your device</p>   
-                    {:else}
-                        <p>Drag a file here or click to browse</p>   
-                    {/if}
+                    <p class="mt-4">{interactionMessage}</p>
                 {/if}
             </div>
         </div>
