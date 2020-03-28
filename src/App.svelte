@@ -42,10 +42,6 @@
 
 </script>
 
-<style>
-	
-</style>
-
 <main class="w-full h-full">
 	<div class="container mx-auto flex flex-col h-full">
 		<div class="flex flex-col sm:flex-row justify-center pt-4 mx-6 sm:items-center">
