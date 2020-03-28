@@ -1,9 +1,3 @@
-const ByteOrder = {
-	Null: null,
-	BigEndian: 'big',
-    LittleEndian: 'little'
-}
-
 const DataType = {
 	Nil: 0,
 	Ascii: 1,
@@ -61,105 +55,13 @@ class TiffReader {
         this.onLoadCallback(["Yup"])
     }
 
-    async getUInt8ByteArray(offset, length) {
-        //Get an array buffer from the file
-        const buffer = await new Response(this.file.slice(offset, offset+length)).arrayBuffer()
-
-        //Return as a UInt8 Array
-        return new Uint8Array(buffer)
-    }
-
-    getUInt16FromBytes(bytes) {
-        //Ensure we have 2 bytes
-        if (bytes.byteLength !== 2) { console.error("Need 2 bytes for a UInt16"); return null; }
-
-        //Check byteorder and return using DataView to set endianness appropriately
-        if (this.headerInfo.byteOrder === ByteOrder.LittleEndian) {
-            return new DataView(bytes.buffer).getUint16(0, true)
-        } 
-        return new DataView(bytes.buffer).getUint16(0, false)
-    }
-
-    getUInt32FromBytes(bytes) {
-        //Ensure we have 4 bytes
-        if (bytes.byteLength !== 4) { console.error("Need 4 bytes for a UInt32"); return null; }
-
-        //Check byteorder and return using DataView to set endianness appropriately
-        if (this.headerInfo.byteOrder === ByteOrder.LittleEndian) {
-            return new DataView(bytes.buffer).getUint32(0, true)
-        }
-        return new DataView(bytes.buffer).getUint32(0, false)
-    }
-
-    getDoubleFromBytes(bytes) {
-        //Ensure we have 8 bytes
-        if (bytes.byteLength !== 8) { console.error("Need 8 bytes for a Double"); return null; }
-
-        //Check byteorder and return using DataView to set endianness appropriately
-        if (this.headerInfo.byteOrder === ByteOrder.LittleEndian) {
-            return new DataView(bytes.buffer).getFloat64(0, true)
-        }
-        return new DataView(bytes.buffer).getFloat64(0, false)
-    }
-
-    getUInt16sFromBytes(bytes) {
-        //Ensure we have an even number of bytes
-        if (bytes.byteLength %2 != 0) { console.error("Need an even number of bytes for a UInt16 array"); return null; }
-        let offset = 0
-        return range(bytes.byteLength / 2).map (index => { 
-            offset = index * 2
-            return this.getUInt16FromBytes(bytes.slice(offset, offset + 2))
-        })
-    }
-
-    getUInt32sFromBytes(bytes) {
-        //Ensure we have an even number of bytes
-        if (bytes.byteLength %2 != 0) { console.error("Need an even number of bytes for a UInt32 array"); return null; }
-        let offset = 0
-        return range(bytes.byteLength / 4).map (index => { 
-            offset = index * 4
-            return this.getUInt32FromBytes(bytes.slice(offset, offset + 4))
-        })
-    }
-
-    getDoublesFromBytes(bytes) {
-        //Ensure we have an even number of bytes
-        if (bytes.byteLength %2 != 0) { console.error("Need an even number of bytes for a UInt32 array"); return null; }
-        let offset = 0
-        return range(bytes.byteLength / 8).map (index => { 
-            offset = index * 8
-            return this.getDoubleFromBytes(bytes.slice(offset, offset + 8))
-        })
-
-    }
-
-    getValues(bytes, dataType) {
-        switch (dataType) {
-            case DataType.Ascii:
-                return String.fromCharCode.apply(null, bytes).trim()
-                break
-            case DataType.Short:
-                return this.getUInt16sFromBytes(bytes)
-                break
-            case DataType.Long:
-                return this.getUInt32sFromBytes(bytes)
-                break
-            case DataType.Double:
-                return this.getDoublesFromBytes(bytes)
-                break
-            default: 
-                return null
-                break
-        }
-    }
-
     async getHeaderInfo() {
         console.log("Getting Header Info")
         //Clear the dict
         this.headerInfo = {}
 
         //Get the first 8 bytes as uint8
-        const initialBytes = await this.getUInt8ByteArray(0, 8)
+        const initialBytes = await getUInt8ByteArray(this.file, 0, 8)
 
         //Query the byte order
         if (initialBytes[0] === 73 && initialBytes[1] === 73) {
@@ -178,7 +80,7 @@ class TiffReader {
         }
 
         //Get the first section offset
-        const offset = this.getUInt32FromBytes(initialBytes.slice(4, 8))
+        const offset = getUInt32FromBytes(initialBytes.slice(4, 8), this.headerInfo.byteOrder)
         this.headerInfo.firstIFDOffset = offset
     }
 
@@ -189,14 +91,14 @@ class TiffReader {
         let fields = []
 
         //Get the field count of the current IFD
-        const fieldCountBytes = await this.getUInt8ByteArray(offset, 2)
-        const fieldCount = this.getUInt16FromBytes(fieldCountBytes)
+        const fieldCountBytes = await getUInt8ByteArray(this.file, offset, 2)
+        const fieldCount = getUInt16FromBytes(fieldCountBytes, this.headerInfo.byteOrder)
 
         //Each field is 12 bytes long
         //Read each field and store it's bytes
         let allFieldBytes = []
         for (let i=0; i < fieldCount; i++) {
-            const bytes = await this.getUInt8ByteArray(offset + 2 + (i*12), 12) 
+            const bytes = await getUInt8ByteArray(this.file, offset + 2 + (i*12), 12) 
             allFieldBytes.push(bytes)
          }
 
@@ -214,8 +116,8 @@ class TiffReader {
         })
 
         //The next 4 bytes will either be 0 if this was the last IFD, or an offset to where the next one starts
-        const nextIFDOffsetBytes = await this.getUInt8ByteArray(offset + 2 + (fieldCount*12), 4)
-        const nextIFDOffset = this.getUInt32FromBytes(nextIFDOffsetBytes)
+        const nextIFDOffsetBytes = await getUInt8ByteArray(this.file, offset + 2 + (fieldCount*12), 4)
+        const nextIFDOffset = getUInt32FromBytes(nextIFDOffsetBytes, this.headerInfo.byteOrder)
         return nextIFDOffset
     }
 
@@ -240,16 +142,16 @@ class TiffReader {
 
     async parseField(fieldBytes) {
         //Get the ID + corresponding name
-        const id = this.getUInt16FromBytes(fieldBytes.slice(0, 2))
+        const id = getUInt16FromBytes(fieldBytes.slice(0, 2), this.headerInfo.byteOrder)
 
         //Get the Data Type
-        const dataTypeID = this.getUInt16FromBytes(fieldBytes.slice(2, 4))
+        const dataTypeID = getUInt16FromBytes(fieldBytes.slice(2, 4), this.headerInfo.byteOrder)
 
         //Get the value count
-        const valuesCount = this.getUInt32FromBytes(fieldBytes.slice(4, 8))
+        const valuesCount = getUInt32FromBytes(fieldBytes.slice(4, 8), this.headerInfo.byteOrder)
 
         //Get the field number
-        const value = this.getUInt32FromBytes(fieldBytes.slice(8, 12))
+        const value = getUInt32FromBytes(fieldBytes.slice(8, 12), this.headerInfo.byteOrder)
 
         //Now we have the original data, lets get the 'computed' values
         //Get the data type
@@ -275,6 +177,26 @@ class TiffReader {
         }
     }
 
+    getValues(bytes, dataType) {
+        switch (dataType) {
+            case DataType.Ascii:
+                return String.fromCharCode.apply(null, bytes).trim()
+                break
+            case DataType.Short:
+                return getUInt16sFromBytes(bytes, this.headerInfo.byteOrder)
+                break
+            case DataType.Long:
+                return getUInt32sFromBytes(bytes, this.headerInfo.byteOrder)
+                break
+            case DataType.Double:
+                return getDoublesFromBytes(bytes, this.headerInfo.byteOrder)
+                break
+            default: 
+                return null
+                break
+        }
+    }
+
     async getFieldData(value, valueIsOffset, valuesCount, dataType) {
         //If the field value is not an offset, just return the value
         //TODO - Lookups
@@ -282,7 +204,7 @@ class TiffReader {
 
         //Get the bytes
         const byteLength = dataType * valuesCount
-        const dataBytes = await this.getUInt8ByteArray(value, byteLength)
+        const dataBytes = await getUInt8ByteArray(this.file, value, byteLength)
 
         //Get the values from the bytes
         const values = this.getValues(dataBytes, dataType)

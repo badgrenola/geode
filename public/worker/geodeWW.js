@@ -9,6 +9,7 @@ function requireWW(moduleName) {
 //Import the reader
 requireWW('./tiffReader.js') // Needs full file name + ext
 requireWW('./tiffFields.js') // Needs full file name + ext
+requireWW('./bytesHelper.js') // Needs full file name + ext
 
 //Setup the on message
 onmessage = (e) => {
