@@ -1,5 +1,6 @@
 <script>
 	import DropZone from './components/DropZone.svelte'
+	import Footer from './components/Footer.svelte'
 
 	//Store info 
 	let loading = false
@@ -47,9 +48,11 @@
 
 <main class="w-full h-full">
 	<div class="container mx-auto flex flex-col h-full">
-		<div class="flex flex-col justify-center items-center pt-4 mx-6">
-			<h1 id="geodeTitle" class="text-green-500 text-4xl tracking-superwide -mr-4 sm:text-5xl sm:tracking-superwider sm:-mr-8 ">Geode</h1>
-			<h2 class="text-center text-sm text-gray-600 font-light -mt-1 sm:text-l sm:-mt-2 sm:text-base">A really very helpful GeoTIFF previewer</h2>
+		<div class="flex flex-col sm:flex-row justify-center pt-4 mx-6 sm:items-center">
+			<h1 id="geodeTitle" class="flex-1 text-green-500 text-4xl sm:text-5xl">Geode</h1>
+			<h2 class="text-sm text-gray-600 font-light sm:w-5/12 sm:text-base sm:text-base sm:text-right">
+				A work-in-progress, (soon-to-be) hopefully really very helpful GeoTIFF preview tool 👍
+			</h2>
 		</div>
 		<div class="w-full flex-1 px-6 py-4 overflow-hidden">
 			<DropZone 
@@ -60,6 +63,6 @@
 				onFileSelected={onFileSelected}
 			/>
 		</div>
-		<p class="w-full text-center px-8 pb-4 text-xs text-gray-500">No information on your files is uploaded, and all processing happens on your own machine.</p>
+		<Footer />
 	</div>
 </main>
