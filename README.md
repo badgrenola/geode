@@ -1,6 +1,6 @@
 # Geode - A work-in-progress, (soon-to-be) hopefully really very helpful GeoTIFF preview tool 👍
 
-Geode is a prototype web-app that allows you to view all metadata included with a given GeoTiff file, just by dragging/dropping it into the browser. It's [currently running live here](mattbrealey.com/geode).
+Geode is a prototype web-app that allows you to view all metadata included with a given GeoTiff file, just by dragging/dropping it into the browser. It's [currently running live here](https://mattbrealey.com/geode).
 
 It's written using [Svelte](https://svelte.dev/) and [TailwindCSS](https://tailwindcss.com/), and processes the binary Tiff file using a Web Worker.
 
