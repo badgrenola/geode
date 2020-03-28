@@ -5,6 +5,7 @@
 	let loading = false
 	let fileDetails = null
 	let errorMessage = null
+	let successMessage = null
 
 	//Setup the web worker
     const worker = new Worker("./worker/geodeWW.js")
@@ -19,6 +20,7 @@
 		} else {
 			//No error was found
 			fileDetails = result.data
+			successMessage = result.successMessage
 		}
 
 		//Switch loading state to false
@@ -33,6 +35,7 @@
 		//Set the state
 		fileDetails = null
 		errorMessage = null
+		successMessage = null
 		loading = true
 	}
 
@@ -51,8 +54,9 @@
 		<div class="w-full flex-1 p-8 overflow-hidden">
 			<DropZone 
 				loading={loading}
-				errorMessage={errorMessage}
 				success={!loading && fileDetails && !errorMessage}
+				errorMessage={errorMessage}
+				successMessage={successMessage}
 				onFileSelected={onFileSelected}
 			/>
 		</div>

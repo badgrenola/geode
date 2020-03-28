@@ -52,7 +52,7 @@ class TiffReader {
         console.log(this.ifds)
 
         //Run the finished callback
-        this.onLoadCallback(["Yup"])
+        this.onLoadCallback(this.ifds, this.constructSuccessMessage())
     }
 
     async getHeaderInfo() {
@@ -209,6 +209,86 @@ class TiffReader {
         //Get the values from the bytes
         const values = this.getValues(dataBytes, dataType)
         return values
+    }
+
+    getKeyValueFromFieldWithNameOrNull(fields, fieldName, valueKey) {
+        const field = fields.find(field => field.name === fieldName)
+        if (!field) { return null }
+        return field[valueKey]
+    }
+
+    constructSuccessMessage() {
+        /*
+            That was a XxY, Zbit, Grayscale/RGB image, with Z tiles (each XxY).
+            It has/doesn't have GDAL metadata.
+            It has/doesn't have GeoAscii params.
+            ModelPixelScale is X, Y, Z
+        */
+
+        //First IFD fields
+        const fields = this.ifds[0].fields
+
+        //Get all required data
+        const w = this.getKeyValueFromFieldWithNameOrNull(fields, "ImageWidth", "data")
+        const h = this.getKeyValueFromFieldWithNameOrNull(fields, "ImageLength", "data")
+        const bits = this.getKeyValueFromFieldWithNameOrNull(fields, "BitsPerSample", "data")
+        const samples = this.getKeyValueFromFieldWithNameOrNull(fields, "SamplesPerPixel", "data")
+        const tileCount = this.getKeyValueFromFieldWithNameOrNull(fields, "TileOffsets", "valuesCount")
+        const tileW = this.getKeyValueFromFieldWithNameOrNull(fields, "TileWidth", "data")
+        const tileH = this.getKeyValueFromFieldWithNameOrNull(fields, "TileLength", "data")
+        const gdalMeta = this.getKeyValueFromFieldWithNameOrNull(fields, "GDAL_METADATA", "data")
+        const geoAscii = this.getKeyValueFromFieldWithNameOrNull(fields, "GeoAsciiParamsTag", "data")
+        const modelPixelScale = this.getKeyValueFromFieldWithNameOrNull(fields, "ModelPixelScaleTag", "data")
+
+        //Resolution
+        let successString = `That was a ${w}x${h}`
+
+        //Bit-rate
+        switch (bits) {
+            case 2:
+                successString += ", 8-bit"
+                break
+            case 4:
+                successString += ", 16-bit"
+                break
+            case 8:
+                successString += ", 32-bit"
+                break
+            default:
+                break
+        }
+
+        //Grayscale/RGB
+        switch (samples) {
+            case 1:
+                successString += ", grayscale image"
+                break
+            case 3:
+                successString += ", RGB image"
+                break
+            default:
+                break
+        }
+        
+        //Tile count + resolution
+        successString += `, with ${tileCount} tiles`
+        successString += ` (each ${tileW}x${tileH}).`
+
+        //GDAL meta
+        successString += "<br />"
+        if (gdalMeta) { successString+= " It has GDAL Metadata."}
+        else { successString+= "It does not have GDAL Metadata."}
+
+        //Geo Ascii
+        successString += "<br />"
+        if (geoAscii) { successString+= "It has Geo Ascii params."}
+        else { successString+= "It does not have Geo Ascii params."}
+
+        if (modelPixelScale) {
+            successString += `<br />Model Pixel Scale is ${modelPixelScale[0]}, ${modelPixelScale[1]}, ${modelPixelScale[2]}.`
+        }
+
+        return successString
     }
 }
 
