@@ -314,19 +314,19 @@ class TiffReader {
             if (stripCount && rowsPerStrip) {
                 successString += "<br />"
                 successString += `${stripCount} strips`
-                successString += ` (each made up of ${rowsPerStrip} row${rowsPerStrip === 1 ? "" : "s"})`
+                successString += ` (each ${rowsPerStrip} row${rowsPerStrip === 1 ? "" : "s"})`
             }
 
 
             //GDAL meta
             successString += "<br />"
-            if (gdalMeta) { successString+= "It has GDAL Metadata."}
-            else { successString+= "It does not have GDAL Metadata."}
+            if (gdalMeta) { successString+= "GDAL Metadata."}
+            else { successString+= "No GDAL Metadata."}
 
             //Geo Ascii
             successString += "<br />"
-            if (geoAscii) { successString+= "It has Geo Ascii params."}
-            else { successString+= "It does not have Geo Ascii params."}
+            if (geoAscii) { successString+= "Geo Ascii params."}
+            else { successString+= "No Geo Ascii params."}
 
             if (modelPixelScale) {
                 successString += `<br />Model Pixel Scale is ${roundToDP(modelPixelScale[0], 4)} x ${roundToDP(modelPixelScale[1], 4)}.`
