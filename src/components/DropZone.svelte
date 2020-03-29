@@ -133,7 +133,7 @@
                 {:else if success}
                     <slot name="success"></slot>
                     <div 
-                        class="absolute left-0 bottom-0 w-full h-12 text-sm bg-gray-300 leading-4 flex items-center justify-center px-8 p-y"
+                        class="absolute left-0 bottom-0 w-full h-12 text-sm bg-gray-300 leading-4 flex items-center justify-center px-8 p-y select-none"
                         on:click={(e) => {
                             if (success) {onClick(e)}
                         }}
