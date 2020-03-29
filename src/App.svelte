@@ -1,6 +1,7 @@
 <script>
 	import DropZone from './components/DropZone.svelte'
 	import Footer from './components/Footer.svelte'
+	import Carousel from './components/Carousel.svelte'
 
 	//Store info 
 	let loading = false
@@ -55,10 +56,10 @@
 				onFileSelected={onFileSelected}
 			>
 				<span slot="success">
-					<p class="text-xs sm:text-sm">{@html fileDetails.fileSummary}</p>
-					<span class="text-xs">
-						{@html fileDetails.ifdSummaries[0]}
-					</span>
+					{#if fileDetails}
+						<p class="text-xs sm:text-sm">{@html fileDetails.fileSummary}</p>
+						<Carousel summaries={fileDetails.ifdSummaries} />
+					{/if}
 				</span>
 			</DropZone>
 		</div>
