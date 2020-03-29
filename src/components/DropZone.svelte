@@ -15,7 +15,7 @@
     let isMobile = (('ontouchstart' in window) || (navigator.MaxTouchPoints > 0) || (navigator.msMaxTouchPoints > 0))
     $: {
         const mobile = `Click here to browse for ${success ? "another" : "a"} file on your device`
-        const desktop = `Drag ${success ? "another" : "a"} file here or click to browse`
+        const desktop = `Drag ${success ? "another" : "a"} file in or click here to browse`
         interactionMessage = isMobile ? mobile : desktop
     }
 
@@ -117,20 +117,29 @@
         on:dragover={onDragOver}
         on:dragleave={onDragLeave}
         on:drop={onDrop}
-        on:click={onClick}
+        on:click={(e) => {
+            if (!success) {onClick(e)}
+        }}
     >
-        <div class="h-full flex flex-col justify-center items-center text-gray-600 font-light text-sm sm:text-base overflow-hidden">
-            <div class="p-4 text-center" style="word-break:break-word;">
+        <div class="h-full flex flex-col justify-center items-center text-gray-600 font-light text-sm sm:text-base overflow-hidden relative">
+            <div class="p-2 sm:p-4 text-center w-full {success ? "pb-12" : ""}" style="word-break:break-word;">
                 {#if loading}
                     <p> Loading...</p>
                 {:else if isDropping}
                     <p>Let go to try and read the file!</p>
-                {:else if success}
-                    <slot name="success"></slot>
-                    <p class="mt-4">{interactionMessage}</p>
                 {:else if errorMessage}
                     <p>Error : {errorMessage}</p>
                     <p class="mt-4">{interactionMessage}</p>
+                {:else if success}
+                    <slot name="success"></slot>
+                    <div 
+                        class="absolute left-0 bottom-0 w-full h-12 text-sm bg-gray-300 leading-4 flex items-center justify-center px-8 p-y"
+                        on:click={(e) => {
+                            if (success) {onClick(e)}
+                        }}
+                    >
+                        {interactionMessage}
+                    </div>
                 {:else}
                     <p class="mt-4">{interactionMessage}</p>
                 {/if}
