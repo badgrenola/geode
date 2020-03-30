@@ -12,7 +12,8 @@ const DataType = {
     SLong: {id:9, byteCount:[4]}, //32-bit signed
     SRational: {id:10, byteCount:[4, 4]}, //2x32-bit signed
     Float: {id:11, byteCount:[4]}, //4-bytes single precision
-	Double: {id:12, byteCount:[8]} //8-bytes double precision
+    Double: {id:12, byteCount:[8]}, //8-bytes double precision
+    ExifIFD: {id:13, byteCount:[4], isOffset:true} //https://www.awaresystems.be/imaging/tiff/tifftags/exififd.html
 }
 
 function getDataTypeFromID(id) {
