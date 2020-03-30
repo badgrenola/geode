@@ -41,8 +41,11 @@ class TiffReader {
             return
         }
 
-        //Parse the initial IFD and return the next IFD offset 
-        let nextIFDOffset = await this.readIFD(this.headerInfo.firstIFDOffset)
+        //Parse the initial IFD and return the offsets found
+        let offsets = await this.readIFD(this.headerInfo.firstIFDOffset)
+        let nextIFDOffset = offsets.nextIFDOffset
+        let exifIFDOffset = offsets.exifIFDOffset
+
         if (this.error) {
             //Error found, abort the process
             this.onErrorCallback(this.error)
@@ -51,14 +54,34 @@ class TiffReader {
 
         //Continue parsing IFDs until the next offset is 0
         while (nextIFDOffset > 0) {
-            nextIFDOffset = await this.readIFD(nextIFDOffset)
+
+            //Parse the IFD and return any IFD offsets found within it
+            const offsets = await this.readIFD(nextIFDOffset)
+            nextIFDOffset = offsets.nextIFDOffset
+            exifIFDOffset = offsets.exifIFDOffset > 0 ? offset.exifIFDOffset : exifIFDOffset
+
+            //Check for errors
             if (this.error) {
                 //Error found, abort the process
                 this.onErrorCallback(this.error)
                 return
             }
         }
-        console.log("Last IFD read successfully")
+
+        //If an Exif IFD was found, parse that
+        if (exifIFDOffset > 0) {
+            await this.readIFD(exifIFDOffset)
+
+            //Check for errors
+            if (this.error) {
+                //Error found, abort the process
+                this.onErrorCallback(this.error)
+                return
+            }
+        }
+
+
+        console.log("All IFDs read successfully")
         console.log(this.ifds)
 
         //Run the finished callback
@@ -133,10 +156,21 @@ class TiffReader {
             fields
         })
 
+        //If the fields contains an Exif IFD tag, return the offset to that
+        let exifIFDOffset = 0
+        let exifIFDField = fields.find(field => field.dataTypeID === 13)
+        if (exifIFDField) {
+            console.log("Found Exif IFD field")
+            exifIFDOffset = exifIFDField.offset
+        }
+
         //The next 4 bytes will either be 0 if this was the last IFD, or an offset to where the next one starts
         const nextIFDOffsetBytes = await getUInt8ByteArray(this.file, offset + 2 + (fieldCount*12), 4)
         const nextIFDOffset = getUInt32FromBytes(nextIFDOffsetBytes, this.byteOrder)
-        return nextIFDOffset
+        return {
+            nextIFDOffset, 
+            exifIFDOffset
+        }
     }
 
     async parseField(fieldBytes) {
@@ -157,11 +191,11 @@ class TiffReader {
         const valuesCount = getUInt32FromBytes(fieldBytes.slice(4, 8), this.byteOrder)
 
         //Figure out of the field number is an offset or a value
-        const valueIsOffset = (valuesCount * reduceTotal(dataType.byteCount)) > 4
+        const valueIsOffset = (valuesCount * reduceTotal(dataType.byteCount)) > 4 || dataType.isOffset
 
         //Get either the raw value, or the offset value
-        let value;
-        let offset;
+        let value = null;
+        let offset = null;
         if (!valueIsOffset) {
             value = this.getValue(fieldBytes, dataType)
         } else {
@@ -178,6 +212,7 @@ class TiffReader {
         return {
             id, 
             name,
+            dataTypeID,
             dataType,
             valuesCount,
             value,
@@ -210,6 +245,7 @@ class TiffReader {
     }
 
     async getOffsetFieldData(offset, valuesCount, dataType) {
+
         //Figure out how many bytes we need
         const byteCount = reduceTotal(dataType.byteCount) * valuesCount
         
