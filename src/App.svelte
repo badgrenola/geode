@@ -21,6 +21,7 @@
 		} else {
 			//No error was found
 			fileDetails = result.data
+			errorMessage = null
 		}
 
 		//Switch loading state to false
