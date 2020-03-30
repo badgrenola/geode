@@ -7,6 +7,8 @@
     export let onFileSelected = null
     export let allowedType = "image/tiff"
 
+    let fileNotAllowed = false
+
     //Setup the internal state
     let isDropping = false
 
@@ -64,13 +66,13 @@
 
         //Update state
         isDropping = false
+        fileNotAllowed = false
 
         //Ensure file is a tiff
         if (e.dataTransfer.files[0].type == allowedType) {
             if (onFileSelected) { onFileSelected(e.dataTransfer.files[0]) }
         } else {
-            errorMessage = "File was not a tiff :("
-            file = null
+            fileNotAllowed = true
         }
     }
 
@@ -96,7 +98,7 @@
     let dropzoneClasses = null
     $: {
         dropzoneClasses = "w-full h-full bg-gray-200 rounded-lg cursor-pointer"
-        if (errorMessage) { dropzoneClasses += " border-dashed border-4 border-red-500"}
+        if (errorMessage || fileNotAllowed) { dropzoneClasses += " border-dashed border-4 border-red-500"}
         else if (isDropping) { dropzoneClasses += " border-dashed border-4 border-green-500"}
         else if (success) { dropzoneClasses += " border-4 border-green-400"}
     }
@@ -127,6 +129,9 @@
                     <p> Loading...</p>
                 {:else if isDropping}
                     <p>Let go to try and read the file!</p>
+                {:else if fileNotAllowed}
+                    <p>Error : File is not a Tiff :(</p>
+                    <p class="mt-4">{interactionMessage}</p>
                 {:else if errorMessage}
                     <p>Error : {errorMessage}</p>
                     <p class="mt-4">{interactionMessage}</p>
