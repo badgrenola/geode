@@ -98,7 +98,7 @@
     let dropzoneClasses = null
     $: {
         dropzoneClasses = "w-full h-full bg-gray-200 rounded-lg cursor-pointer"
-        if (errorMessage || fileNotAllowed) { dropzoneClasses += " border-dashed border-4 border-red-500"}
+        if (errorMessage || (fileNotAllowed && !isDropping)) { dropzoneClasses += " border-dashed border-4 border-red-500"}
         else if (isDropping) { dropzoneClasses += " border-dashed border-4 border-green-500"}
         else if (success) { dropzoneClasses += " border-4 border-green-400"}
     }
