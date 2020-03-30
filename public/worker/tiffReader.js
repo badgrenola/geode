@@ -1,15 +1,10 @@
-const DataType = {
-	Nil: 0,
-	Ascii: 1,
-	Short: 2,
-	Long: 4,
-	Double: 8
-}
-
 const range = (length) => [...Array(length).keys()]
 const roundToDP = (num, dp) => {
     const divisor = Math.pow(10, dp)
     return Math.round((num + Number.EPSILON) * divisor) / divisor
+}
+const reduceTotal = (valuesArray) => {
+    return valuesArray.reduce((total, value) => total + value)
 }
 
 class TiffReader {
@@ -25,6 +20,7 @@ class TiffReader {
 
         //Setup the required vars
         this.headerInfo = {}
+        this.byteOrder = null
         this.ifds = []
 
         //Store any errors
@@ -47,10 +43,20 @@ class TiffReader {
 
         //Parse the initial IFD and return the next IFD offset 
         let nextIFDOffset = await this.readIFD(this.headerInfo.firstIFDOffset)
+        if (this.error) {
+            //Error found, abort the process
+            this.onErrorCallback(this.error)
+            return
+        }
 
         //Continue parsing IFDs until the next offset is 0
         while (nextIFDOffset > 0) {
             nextIFDOffset = await this.readIFD(nextIFDOffset)
+            if (this.error) {
+                //Error found, abort the process
+                this.onErrorCallback(this.error)
+                return
+            }
         }
         console.log("Last IFD read successfully")
         console.log(this.ifds)
@@ -69,13 +75,17 @@ class TiffReader {
 
         //Query the byte order
         if (initialBytes[0] === 73 && initialBytes[1] === 73) {
-            this.headerInfo.byteOrder = ByteOrder.LittleEndian
+            this.byteOrder = ByteOrder.LittleEndian
         } else if (initialBytes[0] === 77 && initialBytes[1] === 77) {
-            this.headerInfo.byteOrder = ByteOrder.BigEndian
+            this.byteOrder = ByteOrder.BigEndian
         }
+        this.headerInfo.byteOrder = this.byteOrder
 
-        //Query the magic number to ensure this is a tiff fil
-        if (initialBytes[2] != 42) {
+        //Query the magic number to ensure this is a tiff fil 
+        if (
+            this.byteOrder === ByteOrder.LittleEndian && initialBytes[2] != 42 ||
+            this.byteOrder === ByteOrder.BigEndian && initialBytes[3] != 42
+        ) {
             console.error(initialBytes, "Not a tiff file")
             this.error = "Not a tiff file"
             return
@@ -84,7 +94,7 @@ class TiffReader {
         }
 
         //Get the first section offset
-        const offset = getUInt32FromBytes(initialBytes.slice(4, 8), this.headerInfo.byteOrder)
+        const offset = getUInt32FromBytes(initialBytes.slice(4, 8), this.byteOrder)
         this.headerInfo.firstIFDOffset = offset
     }
 
@@ -96,7 +106,7 @@ class TiffReader {
 
         //Get the field count of the current IFD
         const fieldCountBytes = await getUInt8ByteArray(this.file, offset, 2)
-        const fieldCount = getUInt16FromBytes(fieldCountBytes, this.headerInfo.byteOrder)
+        const fieldCount = getUInt16FromBytes(fieldCountBytes, this.byteOrder)
 
         //Each field is 12 bytes long
         //Read each field and store it's bytes
@@ -109,6 +119,10 @@ class TiffReader {
         //Parse each field in turn
         for (let i=0; i < fieldCount; i++) {
             const fieldDict = await this.parseField(allFieldBytes[i])
+            if (!fieldDict) { 
+                this.error = "Could not parse field dict"
+                return
+            }
             fields.push(fieldDict)
         }
 
@@ -121,79 +135,73 @@ class TiffReader {
 
         //The next 4 bytes will either be 0 if this was the last IFD, or an offset to where the next one starts
         const nextIFDOffsetBytes = await getUInt8ByteArray(this.file, offset + 2 + (fieldCount*12), 4)
-        const nextIFDOffset = getUInt32FromBytes(nextIFDOffsetBytes, this.headerInfo.byteOrder)
+        const nextIFDOffset = getUInt32FromBytes(nextIFDOffsetBytes, this.byteOrder)
         return nextIFDOffset
     }
 
-    getDataTypeFromID(id) {
-        switch(id){
-            case 2:
-                return DataType.Ascii
-                break
-            case 3:
-                return DataType.Short
-                break
-            case 4:
-                return DataType.Long
-                break
-            case 12:
-                return DataType.Double
-                break
-            default: 
-                break
-        }
-    }
-
     async parseField(fieldBytes) {
+
         //Get the ID + corresponding name
-        const id = getUInt16FromBytes(fieldBytes.slice(0, 2), this.headerInfo.byteOrder)
-
-        //Get the Data Type
-        const dataTypeID = getUInt16FromBytes(fieldBytes.slice(2, 4), this.headerInfo.byteOrder)
-
-        //Get the value count
-        const valuesCount = getUInt32FromBytes(fieldBytes.slice(4, 8), this.headerInfo.byteOrder)
-
-        //Get the field number
-        const value = getUInt32FromBytes(fieldBytes.slice(8, 12), this.headerInfo.byteOrder)
-
-        //Now we have the original data, lets get the 'computed' values
-        //Get the data type
-        const dataType = this.getDataTypeFromID(dataTypeID)
-
-        //Figure out of the field number is an offset or a value
-        const valueIsOffset = (valuesCount * dataType) > 4
+        const id = getUInt16FromBytes(fieldBytes.slice(0, 2), this.byteOrder)
 
         //Get the field name
         const name = tiffFields[id]
 
+        //Get the Data Type
+        const dataTypeID = getUInt16FromBytes(fieldBytes.slice(2, 4), this.byteOrder)
+
+        //Get the data type
+        const dataType = getDataTypeFromID(dataTypeID)
+
+        //Get the value count
+        const valuesCount = getUInt32FromBytes(fieldBytes.slice(4, 8), this.byteOrder)
+
+        //Figure out of the field number is an offset or a value
+        const valueIsOffset = (valuesCount * reduceTotal(dataType.byteCount)) > 4
+
+        //Get either the raw value, or the offset value
+        let value;
+        let offset;
+        if (!valueIsOffset) {
+            value = this.getValue(fieldBytes, dataType)
+        } else {
+            offset = this.getValue(fieldBytes, DataType.Long)
+        }
+
         //Get the data the field represents
-        const data = await this.getFieldData(value, valueIsOffset, valuesCount, dataType)
-        
+        let data = value
+        if (offset) {
+            data = await this.getOffsetFieldData(offset, valuesCount, dataType)
+        }
+
+        //Return an array of the info
         return {
             id, 
             name,
             dataType,
             valuesCount,
             value,
-            valueIsOffset,
+            offset,
             data
         }
     }
 
-    getValues(bytes, dataType) {
-        switch (dataType) {
-            case DataType.Ascii:
-                return String.fromCharCode.apply(null, bytes).trim()
+    getValue(fieldBytes, dataType) {
+
+        //Get the sliced bytes for the value section
+        let slicedBytes = fieldBytes.slice(8, 12)
+        switch (dataType.id) {
+            case 3:
+                //Short
+                return getUInt16FromBytes(slicedBytes, this.byteOrder)
                 break
-            case DataType.Short:
-                return getUInt16sFromBytes(bytes, this.headerInfo.byteOrder)
+            case 4:
+                //Long
+                return getUInt32FromBytes(slicedBytes, this.byteOrder)
                 break
-            case DataType.Long:
-                return getUInt32sFromBytes(bytes, this.headerInfo.byteOrder)
-                break
-            case DataType.Double:
-                return getDoublesFromBytes(bytes, this.headerInfo.byteOrder)
+            case 12:
+                //Double
+                return getDoubleFromBytes(slicedBytes, this.byteOrder)
                 break
             default: 
                 return null
@@ -201,18 +209,35 @@ class TiffReader {
         }
     }
 
-    async getFieldData(value, valueIsOffset, valuesCount, dataType) {
-        //If the field value is not an offset, just return the value
-        //TODO - Lookups
-        if (!valueIsOffset && valuesCount === 1) { return value }
-
+    async getOffsetFieldData(offset, valuesCount, dataType) {
+        //Figure out how many bytes we need
+        const byteCount = reduceTotal(dataType.byteCount) * valuesCount
+        
         //Get the bytes
-        const byteLength = dataType * valuesCount
-        const dataBytes = await getUInt8ByteArray(this.file, value, byteLength)
+        const dataBytes = await getUInt8ByteArray(this.file, offset, byteCount)
 
-        //Get the values from the bytes
-        const values = this.getValues(dataBytes, dataType)
-        return values
+        //Return the values
+        return this.getValuesOfType(dataBytes, dataType, byteCount)
+    }
+
+    getValuesOfType(bytes, dataType) {
+        switch (dataType) {
+            case DataType.Ascii:
+                return String.fromCharCode.apply(null, bytes).trim()
+                break
+            case DataType.Short:
+                return getUInt16sFromBytes(bytes, this.byteOrder)
+                break
+            case DataType.Long:
+                return getUInt32sFromBytes(bytes, this.byteOrder)
+                break
+            case DataType.Double:
+                return getDoublesFromBytes(bytes, this.byteOrder)
+                break
+            default: 
+                return null
+                break
+        }
     }
 
     getKeyValueFromFieldWithNameOrNull(fields, fieldName, valueKey) {
@@ -290,7 +315,7 @@ class TiffReader {
                 }
             }
 
-            //Grayscale/RGB
+            //Grayscale/RGB/RGBA
             successString += "<br />"
             switch (samples) {
                 case 1:
@@ -298,6 +323,9 @@ class TiffReader {
                     break
                 case 3:
                     successString += "RGB"
+                    break
+                case 4:
+                    successString += "RGBA"
                     break
                 default:
                     break
@@ -336,6 +364,11 @@ class TiffReader {
         })
 
     }
+
+    getPreviewImage() {
+        
+    }
+
 }
 
 module.exports = { TiffReader }
