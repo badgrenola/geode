@@ -64,3 +64,9 @@ const ResolutionUnit = {
   INCH: 2,
   CENTIMETER: 3
 };
+
+const ExtraSamples = {
+  UNSPECIFIED: 0,
+  ASSOCALPHA: 1,
+  UNASSALPHA: 2
+};

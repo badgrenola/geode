@@ -45,7 +45,6 @@
 <main class="w-full h-full">
 	<div class="container mx-auto flex flex-col h-full">
 		<Header />
-		<span>Geode is a work-in-progress, (soon-to-be) hopefully really very helpful GeoTIFF preview tool 👍</span>
 		<div class="w-full flex-1 px-6 py-4 overflow-hidden">
 			<DropZone 
 				loading={loading}
