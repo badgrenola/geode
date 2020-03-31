@@ -70,3 +70,12 @@ const ExtraSamples = {
   ASSOCALPHA: 1,
   UNASSALPHA: 2
 };
+
+const enumsObject = {
+  Compression: Compression,
+  PhotometricInterpretation: PhotometricInterpretation,
+  Orientation: Orientation,
+  PlanarConfiguration: PlanarConfiguration,
+  ResolutionUnit: ResolutionUnit,
+  ExtraSamples: ExtraSamples
+};
