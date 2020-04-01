@@ -3,6 +3,7 @@
   import DropZone from './components/DropZone.svelte'
   import Footer from './components/Footer.svelte'
   import Carousel from './components/Carousel.svelte'
+  import MetadataView from './components/MetadataView.svelte'
 
   //Store info
   let loading = false
@@ -57,12 +58,9 @@
         success={!loading && fileDetails && !errorMessage}
         {errorMessage}
         {onFileSelected}>
-        <span slot="success">
+        <span slot="success" class="w-full h-full">
           {#if fileDetails}
-            <p class="text-xs sm:text-sm">
-              {@html fileDetails.fileSummary}
-            </p>
-            <Carousel summaries={fileDetails.ifdSummaries} />
+            <MetadataView {fileDetails} />
           {/if}
         </span>
         <span slot="loading">
