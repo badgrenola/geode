@@ -6,6 +6,11 @@
     if (!data) return 'None'
 
     if (typeof data === typeof []) {
+      //If all values are the same, just show one
+      if (data.every((val, i, arr) => val === arr[0])) {
+        return data[0]
+      }
+
       return `${data.length} values`
     }
 
