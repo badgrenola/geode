@@ -1,154 +1,168 @@
 <script>
+  //Setup the props
+  export let loading = false
+  export let errorMessage = null
+  export let success = false
+  export let onFileSelected = null
+  export let allowedType = 'image/tiff'
 
-    //Setup the props
-    export let loading = false
-    export let errorMessage = null
-    export let success = false
-    export let onFileSelected = null
-    export let allowedType = "image/tiff"
+  let fileNotValid = false
 
-    let fileNotAllowed = false
+  //Setup the internal state
+  let isDropping = false
 
-    //Setup the internal state
-    let isDropping = false
+  //Check for touch events
+  let interactionMessage = ''
+  let isMobile =
+    'ontouchstart' in window ||
+    navigator.MaxTouchPoints > 0 ||
+    navigator.msMaxTouchPoints > 0
+  $: {
+    const mobile = `Click here to browse for ${
+      success ? 'another' : 'a'
+    } file on your device`
+    const desktop = `Drag ${
+      success ? 'another' : 'a'
+    } file in or click here to browse`
+    interactionMessage = isMobile ? mobile : desktop
+  }
 
-    //Check for touch events
-    let interactionMessage = ""
-    let isMobile = (('ontouchstart' in window) || (navigator.MaxTouchPoints > 0) || (navigator.msMaxTouchPoints > 0))
-    $: {
-        const mobile = `Click here to browse for ${success ? "another" : "a"} file on your device`
-        const desktop = `Drag ${success ? "another" : "a"} file in or click here to browse`
-        interactionMessage = isMobile ? mobile : desktop
+  //Helper function to prevent event defaults/bubbling
+  const preventDefaults = e => {
+    e.preventDefault()
+    e.stopPropagation()
+  }
+
+  //Define the drag/drop events
+  const onDragEnter = e => {
+    preventDefaults(e)
+
+    //Don't do anything if we're already loading
+    if (loading) {
+      return
     }
 
-    //Helper function to prevent event defaults/bubbling
-    const preventDefaults = (e) => {
-        e.preventDefault()
-        e.stopPropagation()
+    //Update state
+    isDropping = true
+  }
+
+  const onDragOver = e => {
+    preventDefaults(e)
+
+    //Don't do anything if we're already loading
+    if (loading) {
+      return
     }
 
-    //Define the drag/drop events
-    const onDragEnter = (e) => {
-        preventDefaults(e)
+    //Update state
+    isDropping = true
+  }
 
-        //Don't do anything if we're already loading
-        if (loading) { return }
+  const onDragLeave = e => {
+    preventDefaults(e)
 
-        //Update state
-        isDropping = true
+    //Don't do anything if we're already loading
+    if (loading) {
+      return
     }
 
-    const onDragOver = (e) => {
-        preventDefaults(e)
+    //Update state
+    isDropping = false
+  }
 
-        //Don't do anything if we're already loading
-        if (loading) { return }
+  const onDrop = e => {
+    preventDefaults(e)
 
-        //Update state
-        isDropping = true
+    //Don't do anything if we're already loading
+    if (loading) {
+      return
     }
 
-    const onDragLeave = (e) => {
-        preventDefaults(e)
+    //Update state
+    isDropping = false
+    fileNotValid = false
 
-        //Don't do anything if we're already loading
-        if (loading) { return }
-
-        //Update state
-        isDropping = false
+    //Ensure file is a tiff
+    if (e.dataTransfer.files[0].type == allowedType) {
+      if (onFileSelected) {
+        onFileSelected(e.dataTransfer.files[0])
+      }
+    } else {
+      fileNotValid = true
     }
+  }
 
-    const onDrop = (e) => {
-        preventDefaults(e)
-
-        //Don't do anything if we're already loading
-        if (loading) { return }
-
-        //Update state
-        isDropping = false
-        fileNotAllowed = false
-
-        //Ensure file is a tiff
-        if (e.dataTransfer.files[0].type == allowedType) {
-            if (onFileSelected) { onFileSelected(e.dataTransfer.files[0]) }
-        } else {
-            fileNotAllowed = true
-        }
+  //Setup the methods for click/file select
+  const onClick = e => {
+    //Don't do anything if we're already loading
+    if (loading) {
+      return
     }
+    preventDefaults(e)
 
-    //Setup the methods for click/file select
-    const onClick = (e) => {
-        //Don't do anything if we're already loading
-        if (loading) { return }
+    //Get the hidden input and click
+    document.getElementById('hiddenFileInput').click()
+  }
 
-        //Get the hidden input and click
-        document.getElementById("hiddenFileInput").click()
+  const selectedFile = e => {
+    preventDefaults(e)
+
+    //If a file was chosen, run the callback
+    if (e.target.files.length) {
+      if (onFileSelected) {
+        onFileSelected(e.target.files[0])
+      }
     }
+  }
 
-    const selectedFile = (e) => {
-        preventDefaults(e)
-
-        //If a file was chosen, run the callback
-        if (e.target.files.length) {
-            if (onFileSelected) { onFileSelected(e.target.files[0]) }
-        }
+  //Update the dropzone style depending on whether we're in process of dropping/already have a file
+  let dropzoneClasses = null
+  $: {
+    dropzoneClasses = 'w-full h-full cursor-pointer'
+    if (errorMessage || (fileNotValid && !isDropping)) {
+      dropzoneClasses += ' border-dashed border-4 border-red-500'
+    } else if (isDropping) {
+      dropzoneClasses += ' border-dashed border-4 border-green-500'
+    } else if (success) {
+      dropzoneClasses += ' border-solid border-4 border-white'
     }
-
-    //Update the dropzone style depending on whether we're in process of dropping/already have a file
-    let dropzoneClasses = null
-    $: {
-        dropzoneClasses = "w-full h-full bg-gray-200 rounded-lg cursor-pointer"
-        if (errorMessage || (fileNotAllowed && !isDropping)) { dropzoneClasses += " border-dashed border-4 border-red-500"}
-        else if (isDropping) { dropzoneClasses += " border-dashed border-4 border-green-500"}
-        else if (success) { dropzoneClasses += " border-4 border-green-400"}
-    }
-
+  }
 </script>
 
 <div class="w-full h-full">
-    <input 
-        id="hiddenFileInput" 
-        type="file" 
-        class="hidden" 
-        on:change={selectedFile}
-        accept={allowedType}
-    />
+  <input
+    id="hiddenFileInput"
+    type="file"
+    class="hidden"
+    on:change={selectedFile}
+    accept={allowedType} />
+  <div
+    class={dropzoneClasses}
+    on:dragenter={onDragEnter}
+    on:dragover={onDragOver}
+    on:dragleave={onDragLeave}
+    on:drop={onDrop}
+    on:click={e => {
+      if (!success) {
+        onClick(e)
+      }
+    }}>
     <div
-        class={dropzoneClasses}
-        on:dragenter={onDragEnter}
-        on:dragover={onDragOver}
-        on:dragleave={onDragLeave}
-        on:drop={onDrop}
-        on:click={(e) => {
-            if (!success) {onClick(e)}
-        }}
-    >
-        <div class="h-full flex flex-col justify-center items-center text-gray-600 font-light text-sm sm:text-base overflow-hidden relative">
-            <div class="p-2 sm:p-4 text-center w-full {success ? "pb-12" : ""}" style="word-break:break-word;">
-                {#if loading}
-                    <p> Loading...</p>
-                {:else if isDropping}
-                    <p>Let go to try and read the file!</p>
-                {:else if fileNotAllowed}
-                    <p>Error : File is not a Tiff :(</p>
-                    <p class="mt-4">{interactionMessage}</p>
-                {:else if errorMessage}
-                    <p>Error : {errorMessage}</p>
-                    <p class="mt-4">{interactionMessage}</p>
-                {:else if success}
-                    <slot name="success"></slot>
-                    <div 
-                        class="absolute left-0 bottom-0 w-full h-12 text-sm bg-gray-300 leading-4 flex items-center justify-center px-8 p-y select-none"
-                        on:click={(e) => {
-                            if (success) {onClick(e)}
-                        }}
-                    >
-                        {interactionMessage}
-                    </div>
-                {:else}
-                    <p class="mt-4">{interactionMessage}</p>
-                {/if}
-            </div>
-        </div>
+      class="h-full flex flex-col text-gray-600 font-light text-sm sm:text-base
+      overflow-hidden relative">
+      {#if errorMessage || (fileNotValid && !isDropping)}
+        <slot name="error" />
+      {:else if success}
+        <slot name="success" />
+      {:else if loading}
+        <slot name="loading" />
+      {:else if isDropping}
+        <slot name="dropping" />
+      {:else if fileNotValid}
+        <slot name="fileNotValid" />
+      {:else}
+        <slot name="start" />
+      {/if}
     </div>
+  </div>
 </div>

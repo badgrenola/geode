@@ -25,8 +25,8 @@ const Compression = {
   JBIG: 34661,
   SGILOG: 34676,
   SGILOG24: 34677,
-  JP2000: 3471
-};
+  JP2000: 3471,
+}
 
 const PhotometricInterpretation = {
   MINISWHITE: 0,
@@ -40,8 +40,8 @@ const PhotometricInterpretation = {
   ICCLAB: 9,
   ITULAB: 10,
   LOGL: 32844,
-  LOGLUV: 32845
-};
+  LOGLUV: 32845,
+}
 
 const Orientation = {
   TOPLEFT: 1,
@@ -51,25 +51,25 @@ const Orientation = {
   LEFTTOP: 5,
   RIGHTTOP: 6,
   RIGHTBOT: 7,
-  LEFTBOT: 8
-};
+  LEFTBOT: 8,
+}
 
 const PlanarConfiguration = {
   CONTIG: 1,
-  SEPARATE: 2
-};
+  SEPARATE: 2,
+}
 
 const ResolutionUnit = {
   NONE: 1,
   INCH: 2,
-  CENTIMETER: 3
-};
+  CENTIMETER: 3,
+}
 
 const ExtraSamples = {
   UNSPECIFIED: 0,
   ASSOCALPHA: 1,
-  UNASSALPHA: 2
-};
+  UNASSALPHA: 2,
+}
 
 const enumsObject = {
   Compression: Compression,
@@ -77,5 +77,5 @@ const enumsObject = {
   Orientation: Orientation,
   PlanarConfiguration: PlanarConfiguration,
   ResolutionUnit: ResolutionUnit,
-  ExtraSamples: ExtraSamples
-};
+  ExtraSamples: ExtraSamples,
+}

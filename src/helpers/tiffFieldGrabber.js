@@ -10,20 +10,19 @@ This is obviously not the best code in the world, but it's quick and gets the jo
 const sourceData = ``
 
 //This was created using https://regex101.com/ for testing
-const regExp = /<tr><td>(\d+)<\/td>[\w\W]+?<a[\w\W]+?>([\w\W]+?)<\/a><\/td>/g;
+const regExp = /<tr><td>(\d+)<\/td>[\w\W]+?<a[\w\W]+?>([\w\W]+?)<\/a><\/td>/g
 
 //Get all matches
-const matches = sourceData.matchAll(regExp);
+const matches = sourceData.matchAll(regExp)
 
 //Initialise an object to store the data
 const fields = {}
 
 //Loop through each match found
 for (const match of matches) {
-
-    //There are 2 groups defined in the regex, the first is the ID and the second is the name
-    //Store name by ID in the fields object
-    fields[match["1"]] = match[2]
+  //There are 2 groups defined in the regex, the first is the ID and the second is the name
+  //Store name by ID in the fields object
+  fields[match['1']] = match[2]
 }
 
 //Print so you can copy and use
