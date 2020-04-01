@@ -52,6 +52,7 @@
     <Header onLoad={onLoadButtonPressed} />
     <div class="w-full flex-1 overflow-hidden">
       <DropZone
+        allowClickToLoad={false}
         {loading}
         success={!loading && fileDetails && !errorMessage}
         {errorMessage}
@@ -76,20 +77,7 @@
         <span slot="error">
           <p>Error : {errorMessage}</p>
         </span>
-        <span slot="start">
-          <h2
-            class="text-sm text-gray-600 font-light sm:w-5/12 lg:w-3/12
-            sm:text-base sm:text-base sm:text-right">
-            <p>
-              Geode is a work-in-progress, (soon-to-be) hopefully really very
-              helpful GeoTIFF preview tool.
-            </p>
-            <p>
-              To get started, drag/drop a file here, or click the load icon
-              above
-            </p>
-          </h2>
-        </span>
+        <span slot="start" />
       </DropZone>
     </div>
     <Footer />

@@ -5,6 +5,7 @@
   export let success = false
   export let onFileSelected = null
   export let allowedType = 'image/tiff'
+  export let allowClickToLoad = true
 
   let fileNotValid = false
 
@@ -94,6 +95,11 @@
 
   //Setup the methods for click/file select
   const onClick = e => {
+    //Don't do anything if we're not allowing click to load
+    if (!allowClickToLoad) {
+      return
+    }
+
     //Don't do anything if we're already loading
     if (loading) {
       return
@@ -118,7 +124,10 @@
   //Update the dropzone style depending on whether we're in process of dropping/already have a file
   let dropzoneClasses = null
   $: {
-    dropzoneClasses = 'w-full h-full cursor-pointer'
+    dropzoneClasses = 'w-full h-full'
+    if (allowClickToLoad) {
+      dropzoneClasses += ' cursor-pointer'
+    }
     if (errorMessage || (fileNotValid && !isDropping)) {
       dropzoneClasses += ' border-dashed border-4 border-red-500'
     } else if (isDropping) {

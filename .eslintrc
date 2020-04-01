@@ -7,7 +7,7 @@
     "ecmaVersion": 2019,
     "sourceType": "module"
   },
-  "plugins": ["svelte3", "prettier"],
+  "plugins": ["svelte3"],
   "extends": ["eslint:recommended"],
   "overrides": [
     {
