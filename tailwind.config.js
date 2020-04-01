@@ -9,10 +9,14 @@ module.exports = {
       wider: '.05em',
       widest: '.1em',
       superwide: '1rem',
-      superwider: '2rem'
+      superwider: '2rem',
     },
-    extend: {}
+    extend: {
+      transitionProperty: {
+        height: 'height',
+      },
+    },
   },
   variants: {},
-  plugins: []
+  plugins: [],
 }
