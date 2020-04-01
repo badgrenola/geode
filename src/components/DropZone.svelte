@@ -133,7 +133,7 @@
     } else if (isDropping) {
       dropzoneClasses += ' border-dashed border-4 border-green-500'
     } else if (success) {
-      dropzoneClasses += ' border-solid border-4 border-white'
+      dropzoneClasses += ''
     }
   }
 </script>

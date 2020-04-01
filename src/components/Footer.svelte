@@ -1,4 +1,4 @@
-<footer class="text-center text-xs text-gray-500 p-4">
+<footer class="text-center text-xs text-gray-500 p-4 border-t">
   <p class="italic">
     No information on your files is uploaded, and all processing happens on your
     own machine.

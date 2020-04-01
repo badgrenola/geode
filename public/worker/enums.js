@@ -71,6 +71,15 @@ const ExtraSamples = {
   UNASSALPHA: 2,
 }
 
+const SampleFormat = {
+  UINT: 1,
+  INT: 2,
+  IEEEFP: 3,
+  VOID: 4,
+  COMPLEXINT: 5,
+  COMPLEXIEEEFP: 6,
+}
+
 const enumsObject = {
   Compression: Compression,
   PhotometricInterpretation: PhotometricInterpretation,
@@ -78,4 +87,5 @@ const enumsObject = {
   PlanarConfiguration: PlanarConfiguration,
   ResolutionUnit: ResolutionUnit,
   ExtraSamples: ExtraSamples,
+  SampleFormat: SampleFormat,
 }
