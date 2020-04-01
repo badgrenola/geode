@@ -51,14 +51,15 @@
       {currentIFDIndex + 1} / {fileDetails.data.length}
     </span>
   </div>
-  <div class="pt-2 flex-1 overflow-x-hidden overflow-y-scroll">
+  <div class="sm:pt-2 flex-1 overflow-x-hidden overflow-y-scroll">
     <ul class="text-xs">
       {#each fileDetails.data[currentIFDIndex].fields as field}
         <li
-          class="flex flex-col border-b border-gray-200 h-8 hover:bg-gray-200
-          hover:text-teal-700 cursor-pointer transition-height duration-200 {field.name === expandedField ? 'h-auto' : ''}">
+          class="flex flex-col border-b border-gray-200 h-10 sm:h-8
+          hover:bg-gray-200 hover:text-teal-700 cursor-pointer transition-height
+          duration-200 {field.name === expandedField ? 'h-auto' : ''}">
           <div
-            class="px-3 w-full flex justify-between h-8 items-center"
+            class="px-3 w-full flex justify-between h-10 sm:h-8 items-center"
             on:click={toggleSelectedField(field.name)}>
             <span class="font-semibold ">{field.name}</span>
             <span class="text-right" title={field.data}>
