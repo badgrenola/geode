@@ -19,8 +19,11 @@ onmessage = (e) => {
   const file = e.data
 
   //Pass to the tiff reader to begin reading
-  const onLoad = (data, fileSummary, ifdSummaries) => {
-    postMessage({ data: { data, fileSummary, ifdSummaries }, error: null })
+  const onLoad = (data) => {
+    postMessage({
+      data,
+      error: null,
+    })
   }
   const onError = (errorMessage) => {
     postMessage({ data: null, error: errorMessage })

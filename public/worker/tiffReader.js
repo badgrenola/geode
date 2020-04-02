@@ -84,11 +84,13 @@ class TiffReader {
     console.log(this.ifds)
 
     //Run the finished callback
-    this.onLoadCallback(
-      this.ifds,
-      this.constructFileSummary(),
-      this.constructIFDSummaries()
-    )
+    this.onLoadCallback({
+      file: {
+        name: this.file.name,
+        size: roundToDP(this.file.size / 1000 / 1000, 2),
+      },
+      ifds: this.ifds,
+    })
   }
 
   async getHeaderInfo() {
@@ -317,169 +319,6 @@ class TiffReader {
     } (IFDs) found`
 
     return successString
-  }
-
-  constructIFDSummaries() {
-    /*
-            That was a XxY, Zbit, Grayscale/RGB image, with Z tiles (each XxY).
-            It has/doesn't have GDAL metadata.
-            It has/doesn't have GeoAscii params.
-            ModelPixelScale is X, Y, Z
-        */
-
-    return this.ifds.map((ifd, index) => {
-      //IFD one
-      let successString = `<span><u>IFD ${index + 1} Details</u></span>`
-
-      //First IFD fields
-      const fields = ifd.fields
-
-      //Get all required data
-      const w = this.getKeyValueFromFieldWithNameOrNull(
-        fields,
-        'ImageWidth',
-        'data'
-      )
-      const h = this.getKeyValueFromFieldWithNameOrNull(
-        fields,
-        'ImageLength',
-        'data'
-      )
-      const bits = this.getKeyValueFromFieldWithNameOrNull(
-        fields,
-        'BitsPerSample',
-        'data'
-      )
-      const samples = this.getKeyValueFromFieldWithNameOrNull(
-        fields,
-        'SamplesPerPixel',
-        'data'
-      )
-      const tileCount = this.getKeyValueFromFieldWithNameOrNull(
-        fields,
-        'TileOffsets',
-        'valuesCount'
-      )
-      const tileW = this.getKeyValueFromFieldWithNameOrNull(
-        fields,
-        'TileWidth',
-        'data'
-      )
-      const tileH = this.getKeyValueFromFieldWithNameOrNull(
-        fields,
-        'TileLength',
-        'data'
-      )
-      const stripCount = this.getKeyValueFromFieldWithNameOrNull(
-        fields,
-        'StripOffsets',
-        'valuesCount'
-      )
-      const rowsPerStrip = this.getKeyValueFromFieldWithNameOrNull(
-        fields,
-        'RowsPerStrip',
-        'valuesCount'
-      )
-      const gdalMeta = this.getKeyValueFromFieldWithNameOrNull(
-        fields,
-        'GDAL_METADATA',
-        'data'
-      )
-      const geoAscii = this.getKeyValueFromFieldWithNameOrNull(
-        fields,
-        'GeoAsciiParamsTag',
-        'data'
-      )
-      const modelPixelScale = this.getKeyValueFromFieldWithNameOrNull(
-        fields,
-        'ModelPixelScaleTag',
-        'data'
-      )
-
-      //Resolution
-      successString += `<br />${w} x ${h}`
-
-      //Bit-rate
-      successString += '<br />'
-      if (bits) {
-        //We need to handle RGB images, which store bits in an array
-        //All channels will have same bit rate so we can just grab the first value
-        let comparitor = bits
-        if (typeof bits === 'array' || typeof bits === 'object') {
-          comparitor = bits[0]
-        }
-        switch (comparitor) {
-          case 8:
-            successString += '8-bit'
-            break
-          case 16:
-            successString += '16-bit'
-            break
-          case 32:
-            successString += '32-bit'
-            break
-          default:
-            break
-        }
-      }
-
-      //Grayscale/RGB/RGBA
-      successString += '<br />'
-      switch (samples) {
-        case 1:
-          successString += 'Grayscale'
-          break
-        case 3:
-          successString += 'RGB'
-          break
-        case 4:
-          successString += 'RGBA'
-          break
-        default:
-          break
-      }
-
-      //Tile count + resolution
-      if (tileCount && tileW && tileH) {
-        successString += '<br />'
-        successString += `${tileCount} tiles`
-        successString += ` (each ${tileW} x ${tileH})`
-      }
-
-      //Strip count + rows per strip
-      if (stripCount && rowsPerStrip) {
-        successString += '<br />'
-        successString += `${stripCount} strips`
-        successString += ` (each ${rowsPerStrip} row${
-          rowsPerStrip === 1 ? '' : 's'
-        })`
-      }
-
-      //GDAL meta
-      successString += '<br />'
-      if (gdalMeta) {
-        successString += 'GDAL Metadata.'
-      } else {
-        successString += 'No GDAL Metadata.'
-      }
-
-      //Geo Ascii
-      successString += '<br />'
-      if (geoAscii) {
-        successString += 'Geo Ascii params.'
-      } else {
-        successString += 'No Geo Ascii params.'
-      }
-
-      if (modelPixelScale) {
-        successString += `<br />Model Pixel Scale is ${roundToDP(
-          modelPixelScale[0],
-          4
-        )} x ${roundToDP(modelPixelScale[1], 4)}.`
-      }
-
-      return successString
-    })
   }
 
   getPreviewImage() {}
