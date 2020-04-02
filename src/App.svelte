@@ -75,7 +75,12 @@
         {onFileSelected}>
         <span slot="success" class="w-full h-full">
           {#if fileDetails}
-            <MetadataView {fileDetails} />
+            <div class="flex h-full">
+              <MetadataView {fileDetails} />
+              <div class="hidden flex-1 sm:flex justify-center items-center">
+                2D & 3D Previews coming soon!
+              </div>
+            </div>
           {/if}
         </span>
         <span slot="loading">
