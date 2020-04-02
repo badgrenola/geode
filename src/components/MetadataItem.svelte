@@ -68,10 +68,10 @@
 
 {#if field}
   <li
-    class="flex flex-col border-b border-gray-200 h-10 sm:h-8 overflow-hidden
-    hover:bg-gray-200 hover:text-teal-700 cursor-pointer {isExpanded ? 'bg-gray-200 h-auto sm:h-auto' : ''}">
+    class="flex flex-col border-b border-gray-200 h-10 overflow-hidden
+    hover:bg-gray-200 hover:text-teal-700 cursor-pointer {isExpanded ? 'bg-gray-200 h-auto' : ' '}">
     <div
-      class="w-full flex flex-shrink-0 justify-between h-10 sm:h-8 items-center
+      class="w-full flex flex-shrink-0 justify-between h-10 items-center
       border-b border-gray-300"
       on:click={fieldClicked}>
       <div class="flex items-center">
