@@ -67,11 +67,13 @@
 <div
   class="w-full h-full flex flex-col sm:max-w-xs sm:min-w-xs sm:shadow-lg
   sm:border-r">
-  <div class="flex items-center justify-between p-2 border-b bg-gray-200 h-12">
+  <div
+    class="flex items-center justify-between p-2 border-b bg-gray-200 h-12
+    text-sm">
     <span class="text-teal-800 font-semibold">{fileDetails.file.name}</span>
-    <span class="">{fileDetails.file.size}mb</span>
+    <span>{fileDetails.file.size}mb</span>
   </div>
-  <div class="p-2 flex items-center border-b h-12">
+  <div class="p-2 flex items-center border-b h-12 text-sm">
     <span class="flex-1 font-semibold text-teal-700">
       Image File Directories
     </span>

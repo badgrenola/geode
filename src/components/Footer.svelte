@@ -1,9 +1,8 @@
-<footer class="text-center text-xs text-gray-500 p-4 border-t">
-  <p class="italic">
-    No information on your files is uploaded, and all processing happens on your
-    own machine.
-  </p>
-  <div class="pt-2">
+<footer
+  class="text-center text-xs text-gray-500 p-4 border-t flex flex-col
+  sm:flex-row">
+  <p class="flex-1 italic">No information on your files is uploaded.</p>
+  <div class="flex-1 pt-2 sm:pt-0">
     Created by
     <a
       href="https://mattbrealey.com/"
