@@ -10,6 +10,22 @@
   let fileDetails = null
   let errorMessage = null
 
+  //Get the interaction text
+  let interactionMessage = ''
+  let isMobile =
+    'ontouchstart' in window ||
+    navigator.MaxTouchPoints > 0 ||
+    navigator.msMaxTouchPoints > 0
+  $: {
+    const mobile = `Click the load icon above to browse for ${
+      fileDetails && !errorMessage ? 'another' : 'a'
+    } file on your device`
+    const desktop = `Drag ${
+      fileDetails && !errorMessage ? 'another' : 'a'
+    } file in or click the load icon above to browse`
+    interactionMessage = isMobile ? mobile : desktop
+  }
+
   //Setup the web worker
   const worker = new Worker('./worker/geodeWW.js')
   worker.onmessage = function(e) {
@@ -20,7 +36,6 @@
     if (!result || result.error) {
       //An error was found
       errorMessage = result.error
-      console.log(result.error)
     } else {
       //No error was found
       fileDetails = result.data
@@ -66,16 +81,29 @@
         <span slot="loading">
           <p>Loading...</p>
         </span>
-        <span slot="dropping">
-          <p>Let go to try and read the file!</p>
+        <span
+          slot="dropping"
+          class="w-full h-full p-8 flex justify-center items-center text-center
+          relative">
+          Let go to try and read the file!
         </span>
-        <span slot="fileNotValid">
+        <span
+          slot="fileNotValid"
+          class="w-full h-full p-8 flex justify-center items-center text-center
+          relative">
           <p>Error : File is not a Tiff :(</p>
         </span>
-        <span slot="error">
+        <span
+          slot="error"
+          class="w-full h-full p-8 flex justify-center items-center text-center
+          relative">
           <p>Error : {errorMessage}</p>
         </span>
-        <span slot="start" />
+        <div
+          slot="start"
+          class="w-full h-full p-8 flex justify-center items-center text-center">
+          {interactionMessage}
+        </div>
       </DropZone>
     </div>
     <Footer />

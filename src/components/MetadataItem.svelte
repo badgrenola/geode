@@ -86,7 +86,9 @@
     {#if isExpanded}
       <div class="flex-1 flex">
         <div
-          class="w-8 h-auto bg-gray-200 border-r border-gray-300 flex-shrink-0"
+          class="w-8 h-auto bg-gray-200 border-r border-gray-300 flex-shrink-0
+          hover:bg-gray-100"
+          title={'collapse'}
           on:click={fieldClicked} />
         <span
           class="p-1 break-words bg-gray-100 w-full cursor-text select-text

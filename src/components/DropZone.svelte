@@ -12,22 +12,6 @@
   //Setup the internal state
   let isDropping = false
 
-  //Check for touch events
-  let interactionMessage = ''
-  let isMobile =
-    'ontouchstart' in window ||
-    navigator.MaxTouchPoints > 0 ||
-    navigator.msMaxTouchPoints > 0
-  $: {
-    const mobile = `Click here to browse for ${
-      success ? 'another' : 'a'
-    } file on your device`
-    const desktop = `Drag ${
-      success ? 'another' : 'a'
-    } file in or click here to browse`
-    interactionMessage = isMobile ? mobile : desktop
-  }
-
   //Helper function to prevent event defaults/bubbling
   const preventDefaults = e => {
     e.preventDefault()
@@ -124,7 +108,7 @@
   //Update the dropzone style depending on whether we're in process of dropping/already have a file
   let dropzoneClasses = null
   $: {
-    dropzoneClasses = 'w-full h-full'
+    dropzoneClasses = 'w-full h-full absolute z-10 pointer-events-none'
     if (allowClickToLoad) {
       dropzoneClasses += ' cursor-pointer'
     }
@@ -138,40 +122,39 @@
   }
 </script>
 
-<div class="w-full h-full">
+<svelte:window
+  on:dragenter={onDragEnter}
+  on:dragover={onDragOver}
+  on:dragleave={onDragLeave}
+  on:drop={onDrop} />
+<div
+  class="w-full h-full relative text-sm sm:text-base text-gray-600 font-light ">
   <input
     id="hiddenFileInput"
     type="file"
     class="hidden"
     on:change={selectedFile}
     accept={allowedType} />
-  <div
-    class={dropzoneClasses}
-    on:dragenter={onDragEnter}
-    on:dragover={onDragOver}
-    on:dragleave={onDragLeave}
-    on:drop={onDrop}
-    on:click={e => {
-      if (!success) {
-        onClick(e)
-      }
-    }}>
-    <div
-      class="h-full flex flex-col text-gray-600 font-light text-sm sm:text-base
-      overflow-hidden relative">
-      {#if errorMessage || (fileNotValid && !isDropping)}
-        <slot name="error" />
-      {:else if success}
-        <slot name="success" />
-      {:else if loading}
-        <slot name="loading" />
-      {:else if isDropping}
+  <div class={dropzoneClasses}>
+    <div class="relative w-full h-full">
+      <div
+        class="absolute top-0 w-full h-full {isDropping ? ' bg-gray-100 opacity-75' : ''}" />
+      {#if isDropping}
         <slot name="dropping" />
-      {:else if fileNotValid}
-        <slot name="fileNotValid" />
-      {:else}
-        <slot name="start" />
       {/if}
     </div>
+  </div>
+  <div class="w-full h-full flex flex-col overflow-hidden relative">
+    {#if errorMessage}
+      <slot name="error" />
+    {:else if success}
+      <slot name="success" />
+    {:else if loading}
+      <slot name="loading" />
+    {:else if fileNotValid}
+      <slot name="fileNotValid" />
+    {:else if !isDropping}
+      <slot name="start" />
+    {/if}
   </div>
 </div>

@@ -21,15 +21,13 @@
 </script>
 
 <div
-  class="w-full h-full flex flex-col sm:max-w-xs sm:min-w-xs sm:shadow-lg
-  sm:border-r">
-  <div
-    class="flex items-center justify-between p-2 border-b bg-gray-200 h-12
-    text-sm">
+  class="w-full h-full flex flex-col text-xs sm:max-w-xs sm:min-w-xs
+  sm:shadow-lg sm:border-r">
+  <div class="flex items-center justify-between p-2 border-b bg-gray-200 h-12 ">
     <span class="text-teal-800 font-semibold">{fileDetails.file.name}</span>
     <span>{fileDetails.file.size}mb</span>
   </div>
-  <div class="p-2 flex items-center border-b h-12 text-sm">
+  <div class="p-3 flex items-center border-b h-12 ">
     <span class="flex-1 font-semibold text-teal-700">
       Image File Directories
     </span>
@@ -38,7 +36,7 @@
     </span>
   </div>
   <div class="flex-1 overflow-x-hidden overflow-y-scroll select-none">
-    <ul class="text-xs">
+    <ul>
       {#each fileDetails.ifds[currentIFDIndex].fields as field}
         <MetadataItem
           {field}
