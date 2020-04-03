@@ -80,6 +80,88 @@ const SampleFormat = {
   COMPLEXIEEEFP: 6,
 }
 
+const ProjLinearUnitsGeoKey = {
+  Meter:	9001,
+  Foot:	9002,
+  Foot_US_Survey:	9003,
+  Foot_Modified_American:	9004,
+  Foot_Clarke:	9005,
+  Foot_Indian:	9006,
+  Link:	9007,
+  Link_Benoit:	9008,
+  Link_Sears:	9009,
+  Chain_Benoit:	9010,
+  Chain_Sears:	9011,
+  Yard_Sears:	9012,
+  Yard_Indian:	9013,
+  Fathom:	9014,
+  Mile_International_Nautical:	9015,
+}
+
+const ProjCoordTransGeoKey = {
+  TransverseMercator:	1,
+  TransvMercator_Modified_Alaska: 2,
+  ObliqueMercator:	3,
+  ObliqueMercator_Laborde:	4,
+  ObliqueMercator_Rosenmund:	5,
+  ObliqueMercator_Spherical:	6,
+  Mercator:	7,
+  LambertConfConic_2SP:	8,
+  LambertConfConic_Helmert:	9,
+  LambertAzimEqualArea:	10,
+  AlbersEqualArea:	11,
+  AzimuthalEquidistant:	12,
+  EquidistantConic:	13,
+  Stereographic:	14,
+  PolarStereographic:	15,
+  ObliqueStereographic:	16,
+  Equirectangular:	17,
+  CassiniSoldner:	18,
+  Gnomonic:	19,
+  MillerCylindrical:	20,
+  Orthographic:	21,
+  Polyconic:	22,
+  Robinson:	23,
+  Sinusoidal:	24,
+  VanDerGrinten:	25,
+  NewZealandMapGrid:	26,
+  TransvMercator_SouthOriented:27
+}
+
+const ProjectionGeoKey = {
+  UserDefined: 32767,
+}
+
+const ProjectedCSTypeGeoKey = {
+  UserDefined: 32767,
+}
+
+const GTModelTypeGeoKey = {
+  ModelTypeProjected: 1,
+  ModelTypeGeographic: 2,
+  ModelTypeGeocentric: 3,
+}
+
+const GTRasterTypeGeoKey = {
+  PixelIsArea: 1,
+  PixelIsPoint:2,
+}
+
+const GeographicTypeGeoKey = {
+  UserDefined: 32767,
+}
+
+const GeogAngularUnitsGeoKey = {
+  Radian: 9101,
+  Degree: 9102,
+  Arc_Minute: 9103,
+  Arc_Second: 9104,
+  Grad: 9105,
+  Gon: 9106,
+  DMS: 9107,
+  DMS_Hemisphere: 9108,
+}
+
 const enumsObject = {
   Compression: Compression,
   PhotometricInterpretation: PhotometricInterpretation,
@@ -88,4 +170,12 @@ const enumsObject = {
   ResolutionUnit: ResolutionUnit,
   ExtraSamples: ExtraSamples,
   SampleFormat: SampleFormat,
+  ProjLinearUnitsGeoKey: ProjLinearUnitsGeoKey,
+  ProjCoordTransGeoKey: ProjCoordTransGeoKey,
+  ProjectionGeoKey: ProjectionGeoKey,
+  ProjectedCSTypeGeoKey: ProjectedCSTypeGeoKey,
+  GTModelTypeGeoKey: GTModelTypeGeoKey,
+  GTRasterTypeGeoKey: GTRasterTypeGeoKey,
+  GeographicTypeGeoKey: GeographicTypeGeoKey,
+  GeogAngularUnitsGeoKey: GeogAngularUnitsGeoKey,
 }
