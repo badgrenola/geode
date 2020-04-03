@@ -395,3 +395,5 @@ const tiffFields = {
   4098: 'VerticalDatumGeoKey',
   4099: 'VerticalUnitsGeoKey',
 }
+
+export { tiffFields }

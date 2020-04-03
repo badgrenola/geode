@@ -1,15 +1,23 @@
-const range = (length) => [...Array(length).keys()]
-const roundToDP = (num, dp) => {
-  const divisor = Math.pow(10, dp)
-  return Math.round((num + Number.EPSILON) * divisor) / divisor
-}
-const reduceTotal = (valuesArray) => {
-  return valuesArray.reduce((total, value) => total + value)
-}
+import {
+  ByteOrder,
+  getUInt8ByteArray,
+  getUInt16FromBytes,
+  getUInt32FromBytes,
+  getDoubleFromBytes,
+  getUInt16sFromBytes,
+  getUInt32sFromBytes,
+  getDoublesFromBytes
+} from './bytesHelper'
+import { tiffFields } from './tiffFields'
+import { getDataTypeFromID, DataType } from './dataTypes'
+import { enumsObject } from './enums'
+import { roundToDP, reduceTotal } from '../helpers/jsHelpers'
 
 class TiffReader {
   constructor(file, onLoadCallback, onErrorCallback) {
     console.log('TiffReader : Reading ' + file.name)
+
+    console.log(getUInt8ByteArray)
 
     //Store the file
     this.file = file
@@ -479,4 +487,4 @@ class TiffReader {
   getPreviewImage() {}
 }
 
-module.exports = { TiffReader }
+export { TiffReader }

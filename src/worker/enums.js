@@ -179,3 +179,5 @@ const enumsObject = {
   GeographicTypeGeoKey: GeographicTypeGeoKey,
   GeogAngularUnitsGeoKey: GeogAngularUnitsGeoKey,
 }
+
+export { enumsObject }

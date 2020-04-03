@@ -25,3 +25,5 @@ function getDataTypeFromID(id) {
   }
   return null
 }
+
+export { getDataTypeFromID, DataType }

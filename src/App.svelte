@@ -2,8 +2,8 @@
   import Header from './components/Header.svelte'
   import DropZone from './components/DropZone.svelte'
   import Footer from './components/Footer.svelte'
-  import Carousel from './components/Carousel.svelte'
   import MetadataView from './components/MetadataView.svelte'
+  import GeodeWW from 'web-worker:./worker/geodeWW.js';
 
   //Store info
   let loading = false
@@ -27,7 +27,7 @@
   }
 
   //Setup the web worker
-  const worker = new Worker('./worker/geodeWW.js')
+  const worker = new GeodeWW()
   worker.onmessage = function(e) {
     //Get the result
     const result = e.data

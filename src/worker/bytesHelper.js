@@ -1,3 +1,5 @@
+import { range } from '../helpers/jsHelpers'
+
 const ByteOrder = {
   Null: null,
   BigEndian: 'big',
@@ -96,4 +98,15 @@ function getDoublesFromBytes(bytes, byteOrder) {
     offset = index * 8
     return getDoubleFromBytes(bytes.slice(offset, offset + 8), byteOrder)
   })
+}
+
+export {
+  ByteOrder,
+  getUInt8ByteArray,
+  getUInt16FromBytes,
+  getUInt32FromBytes,
+  getDoubleFromBytes,
+  getUInt16sFromBytes,
+  getUInt32sFromBytes,
+  getDoublesFromBytes
 }
