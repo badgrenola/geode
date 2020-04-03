@@ -1,4 +1,6 @@
 <script>
+  import { prettyFormatData } from '../helpers/stringFormatter'
+
   export let field
   export let isExpanded
   export let onToggle
@@ -9,7 +11,16 @@
   $: {
     canExpand = canFieldExpand()
     shortDataString = getShortDataString()
-    prettyPrintedData = getPrettyPrintedData()
+    prettyPrintedData = prettyFormatData(field.data, field.name)
+  }
+
+  const roundToDP = (num, dp) => {
+    const divisor = 10**dp
+    return Math.round((num + Number.EPSILON) * divisor) / divisor
+  }
+
+  const isObject = value => {
+    return value && typeof value === 'object' && value.constructor === Object
   }
 
   const canFieldExpand = () => {
@@ -19,21 +30,28 @@
     if (!field.data) {
       return false
     }
-    if (typeof field.data === typeof '' && field.data.length > 24) {
+    if (typeof field.data === typeof '' && field.data.length > 18) {
       return true
     }
-    if (typeof field.data === typeof []) {
+    if (Array.isArray(field.data)) {
       if (!field.data.every((val, i, arr) => val === arr[0])) {
         return true
       }
+    }
+    if (isObject(field.data)) {
+      return true
+    }
+
+    if (typeof field.data === 'number' && `${field.data}`.length > 10) {
+      return true
     }
     return false
   }
 
   const getShortDataString = () => {
-    if (!field.data) return 'None'
+    if (field.data === undefined || field.data === null) return 'None'
 
-    if (typeof field.data === typeof []) {
+    if (Array.isArray(field.data)) {
       //If all values are the same, just show one
       if (field.data.every((val, i, arr) => val === arr[0])) {
         return `${field.data.length} x [${field.data[0]}]`
@@ -42,20 +60,19 @@
       return `${field.data.length} values`
     }
 
-    if (typeof field.data === typeof '' && field.data.length > 24) {
+    //Object
+    if (isObject(field.data)) {
+      return `${JSON.stringify(field.data).length} char JSON`
+    }
+
+    if (typeof field.data === typeof '' && field.data.length > 18) {
       return `${field.data.length} char string`
     }
 
-    return field.data
-  }
+    if (typeof field.data === 'number' && `${field.data}`.length > 10) {
+      return `${roundToDP(field.data, 5)} to 5dp`
+    }
 
-  const getPrettyPrintedData = () => {
-    if (!field.data) {
-      return 'None'
-    }
-    if (typeof field.data === typeof []) {
-      return field.data.join('<br />')
-    }
     return field.data
   }
 
