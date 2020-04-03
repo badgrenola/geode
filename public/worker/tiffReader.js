@@ -154,6 +154,9 @@ class TiffReader {
       fields.push(fieldDict)
     }
 
+    //Parse GeoData
+    this.getGeoKeyDirectoryDataFromFields(fields)
+
     //Store the IFD data
     this.ifds.push({
       id: this.ifds.length,
@@ -220,7 +223,7 @@ class TiffReader {
     //Get the data the field represents
     let data = value
     if (offset) {
-      data = await this.getOffsetFieldData(offset, valuesCount, dataType)
+      data = await this.getOffsetFieldData(offset, valuesCount, dataType, name)
     } else {
       //If field name is a known enum, get the enum value
       if (Object.keys(enumsObject).find((key) => key === name)) {
@@ -267,15 +270,167 @@ class TiffReader {
     }
   }
 
-  async getOffsetFieldData(offset, valuesCount, dataType) {
+  async getOffsetFieldData(offset, valuesCount, dataType, name) {
     //Figure out how many bytes we need
     const byteCount = reduceTotal(dataType.byteCount) * valuesCount
 
     //Get the bytes
     const dataBytes = await getUInt8ByteArray(this.file, offset, byteCount)
 
+    //Special case the GeoTiff tags
+    if (name === 'GeoKeyDirectoryTag') {
+      return 'Found'
+    } 
+
     //Return the values
     return this.getValuesOfType(dataBytes, dataType, byteCount)
+  }
+
+  async getGeoKeyDirectoryDataFromFields(fields) {
+
+    //Check that we have all the fields needed
+    const geoDirectoryField = fields.find(field => field.id === 34735)
+    const geoAsciiField = fields.find(field => field.id === 34737)
+    const geoDoubleField = fields.find(field => field.id === 34736)
+
+    if (!geoDirectoryField && (!geoAsciiField || !geoDoubleField)) {
+      //One of the required fields is missing
+      return
+    }
+
+    //Get the directory field info
+    //Figure out how many bytes we need
+    const byteCount = reduceTotal(geoDirectoryField.dataType.byteCount) * geoDirectoryField.valuesCount
+
+    //Get the bytes
+    const directoryBytes = await getUInt8ByteArray(this.file, geoDirectoryField.offset, byteCount)
+
+    //http://geotiff.maptools.org/spec/geotiff2.4.html
+    //All 2 byte unsigned short
+    //First 4 values are KeyDirectoryVersion, KeyRevision, MinorRevision, NumberOfKeys
+    const header = {
+      KeyDirectoryVersion: getUInt16FromBytes(
+        directoryBytes.slice(0, 2),
+        this.byteOrder
+      ),
+      KeyRevision: getUInt16FromBytes(
+        directoryBytes.slice(2, 4),
+        this.byteOrder
+      ),
+      MinorRevision: getUInt16FromBytes(
+        directoryBytes.slice(4, 6),
+        this.byteOrder
+      ),
+      NumberOfKeys: getUInt16FromBytes(
+        directoryBytes.slice(6, 8),
+        this.byteOrder
+      ),
+    }
+
+    //Next are NumberOfKeys * 4 values
+    //KeyID, TIFFTagLocation, Count, Value_Offset
+    let keyLookup = []
+    let offset = 8
+    for (var i = 0; i < header.NumberOfKeys; i++) {
+      keyLookup.push({
+        KeyID: getUInt16FromBytes(
+          directoryBytes.slice(offset, offset + 2),
+          this.byteOrder
+        ),
+        TIFFTagLocation: getUInt16FromBytes(
+          directoryBytes.slice(offset + 2, offset + 4),
+          this.byteOrder
+        ),
+        Count: getUInt16FromBytes(
+          directoryBytes.slice(offset + 4, offset + 6),
+          this.byteOrder
+        ),
+        Value_Offset: getUInt16FromBytes(
+          directoryBytes.slice(offset + 6, offset + 8),
+          this.byteOrder
+        ),
+      })
+      offset += 8
+    }
+
+    //Loop through each of the key lookups and create a field item
+    // return {
+    //   id,
+    //   name,
+    //   dataTypeID,
+    //   dataType,
+    //   valuesCount,
+    //   value,
+    //   offset,
+    //   data,
+    // }
+
+    keyLookup.forEach((lookup) => {
+      //Get the name like normal
+      const keyName = tiffFields[lookup.KeyID]
+
+      //Get the value
+      let value = null
+      let dir = null
+      let offset = null
+      let data = null
+      
+      //If the TiffTagLocation is 0, then the value offset IS the value
+      if (lookup.TIFFTagLocation === 0) {
+        value = lookup.Value_Offset
+      } else {
+        //Value is in another directory, at a specific offset
+        dir = lookup.TIFFTagLocation
+        offset = lookup.Value_Offset
+      }
+
+      //Other dirs are
+      //34736: 'GeoDoubleParamsTag'
+      //34737: 'GeoAsciiParamsTag'
+      let dataTypeID = null
+      let dataType = null
+      if (dir === 34736) {
+        //Value is a Double
+        data = geoDoubleField.data[offset]
+        dataTypeID = 12
+        dataType = DataType.Double
+      } else if (dir === 34737) {
+        //Value is a string
+        data = geoAsciiField.data.slice(offset).split("|")[0]
+        dataTypeID = 2
+        dataType = DataType.Ascii
+      } else {
+        data = value
+        dataTypeID = 3
+        dataType = DataType.Short
+      }
+
+      //Check Enum for known values
+      if (Object.keys(enumsObject).find((key) => key === keyName)) {
+        //If enum contains the given value, return the key
+        const matchedEnum = enumsObject[keyName]
+        const result = Object.keys(matchedEnum).find(
+          (key) => matchedEnum[key] === data
+        )
+        if (result) { 
+          data = result
+        }
+      }
+
+      const field = {
+        id:lookup.KeyID,
+        name:keyName,
+        dataTypeID,
+        dataType,
+        valuesCount:1, //TODO : is this always true?
+        value,
+        offset,
+        data,
+      }
+
+      fields.push(field)
+    })
+
   }
 
   getValuesOfType(bytes, dataType) {
