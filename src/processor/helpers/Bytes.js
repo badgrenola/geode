@@ -66,11 +66,18 @@ function getDataFromBytes(bytes, dataType, byteOrder) {
 function getDataArrayFromBytes(bytes, dataType, byteOrder) {
   let offset = 0
   let byteCount = dataType.byteCount[0]
-  return range(bytes.byteLength / byteCount).map((index) => {
+  const result = range(bytes.byteLength / byteCount).map((index) => {
     offset = index * byteCount
     const byteSlice = bytes.slice(offset, offset + byteCount)
     return getDataFromBytes(byteSlice, dataType, byteOrder)
   })
+  
+  //If data type is ascii, merge the results
+  if (dataType === DataType.Ascii) {
+    return result.join("")
+  }
+  return result
+
 }
 
 export { ByteOrder, DataType, getDataTypeFromID, getUInt8ByteArray, getDataFromBytes, getDataArrayFromBytes}

@@ -6,10 +6,10 @@ import {
   getDataTypeFromID,
   getDataArrayFromBytes
 } from './helpers/Bytes'
-
 import {reduceTotal} from '../helpers/jsHelpers'
-
 import { TiffFields } from './helpers/TiffFields'
+import { getGeoKeyDataFields, getGeoKeyData } from './helpers/GeoTiff'
+import { getEnumKeyFromFieldNameAndValue } from './helpers/Enums'
 
 class TiffReader {
   constructor(onLoad, onError) {
@@ -51,6 +51,17 @@ class TiffReader {
       return
     }
 
+    //Once the basic IFD data has been found, parse geotiff specific data
+    const geotiffParseError = await this.parseGeoTiff()
+    if (geotiffParseError) {
+      this.onError(geotiffParseError)
+      return
+    }
+
+    //Finally check if there are known enum values for any of the retrieved fields
+    this.populateEnumValues()
+
+    //Return the header and ifd info
     this.onLoad({
       header: this.header,
       ifds: this.ifds,
@@ -252,6 +263,28 @@ class TiffReader {
     //Return the values
     return getDataArrayFromBytes(dataBytes, dataType, this.header.byteOrder)
   }
+
+  async parseGeoTiff() {
+    for (let i = 0;i < this.ifds.length; i++) {
+      const geoFields = await getGeoKeyDataFields(this.ifds[i].fields)
+      if (geoFields) {
+        const geoKeyFields = await getGeoKeyData(geoFields, this.file, this.header.byteOrder)
+        console.log(geoKeyFields)
+        geoKeyFields.forEach(geoKeyField => {
+          this.ifds[i].fields.push(geoKeyField)
+        })
+      }
+    }
+  }
+
+  populateEnumValues() {
+    this.ifds.forEach(ifd => {
+      ifd.fields.forEach(field => {
+        field.enumValue = getEnumKeyFromFieldNameAndValue(field.name, field.value)
+      })
+    })
+  }
+
 }
 
 export { TiffReader }
