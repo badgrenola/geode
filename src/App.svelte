@@ -2,6 +2,10 @@
   import Header from './components/Header.svelte'
   import DropZone, { showFileBrowser } from './components/DropZone.svelte'
   import Footer from './components/Footer.svelte'
+
+  // import { GeodeStore } from './stores/GeodeStore.js'
+  import { onNewFileSelected } from './processor/GeodeProcessor'
+
   // import MetadataView from './components/MetadataView.svelte'
   // import GeodeWW from 'web-worker:./worker/geodeWW.js';
 
@@ -68,7 +72,7 @@
     <Header onLoadButtonPressed={(showFileBrowser)} />
     <div class="w-full flex-1 overflow-hidden">
       <DropZone 
-        onFileSelected={(file) => { console.log(file)}}
+        onFileSelected={onNewFileSelected}
       >
       </DropZone>
       <!-- <DropZone
