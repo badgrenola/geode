@@ -3,8 +3,8 @@
   import DropZone, { showFileBrowser } from './components/DropZone.svelte'
   import Footer from './components/Footer.svelte'
 
-  // import { GeodeStore } from './stores/GeodeStore.js'
-  import { onNewFileSelected } from './processor/GeodeProcessor'
+  import { GeodeStore } from './stores/GeodeStore.js'
+  import { onNewFileSelected, GeodeProcessorState } from './processor/GeodeProcessor'
 
   // import MetadataView from './components/MetadataView.svelte'
   // import GeodeWW from 'web-worker:./worker/geodeWW.js';
@@ -15,20 +15,20 @@
   // let errorMessage = null
 
   //Get the interaction text
-  // let interactionMessage = ''
-  // let isMobile =
-  //   'ontouchstart' in window ||
-  //   navigator.MaxTouchPoints > 0 ||
-  //   navigator.msMaxTouchPoints > 0
-  // $: {
-  //   const mobile = `Click the load icon above to browse for ${
-  //     fileDetails && !errorMessage ? 'another' : 'a'
-  //   } file on your device`
-  //   const desktop = `Drag ${
-  //     fileDetails && !errorMessage ? 'another' : 'a'
-  //   } file in or click the load icon above to browse`
-  //   interactionMessage = isMobile ? mobile : desktop
-  // }
+  let interactionMessage = ''
+  let isMobile =
+    'ontouchstart' in window ||
+    navigator.MaxTouchPoints > 0 ||
+    navigator.msMaxTouchPoints > 0
+  $: {
+    const mobile = `Click the load icon above to browse for ${
+      $GeodeStore.file ? 'another' : 'a'
+    } file on your device`
+    const desktop = `Drag ${
+      $GeodeStore.file ? 'another' : 'a'
+    } file in or click the load icon above to browse`
+    interactionMessage = isMobile ? mobile : desktop
+  }
 
   //Setup the web worker
   // const worker = new GeodeWW()
@@ -70,54 +70,19 @@
 <main class="w-full h-full">
   <div class="flex flex-col h-full">
     <Header onLoadButtonPressed={(showFileBrowser)} />
-    <div class="w-full flex-1 overflow-hidden">
+    <div class="w-full flex-1 overflow-hidden relative">
       <DropZone 
-        onFileSelected={onNewFileSelected}
-      >
+          onFileSelected={onNewFileSelected}
+        >
       </DropZone>
-      <!-- <DropZone
-        allowClickToLoad={false}
-        {loading}
-        success={!loading && fileDetails && !errorMessage}
-        {errorMessage}
-        {onFileSelected}>
-        <span slot="success" class="w-full h-full">
-          {#if fileDetails}
-            <div class="flex h-full">
-              <MetadataView {fileDetails} />
-              <div class="hidden flex-1 sm:flex justify-center items-center">
-                2D & 3D Previews coming soon!
-              </div>
-            </div>
-          {/if}
-        </span>
-        <span slot="loading">
-          <p>Loading...</p>
-        </span>
-        <span
-          slot="dropping"
-          class="w-full h-full p-8 flex justify-center items-center text-center
-          relative">
-          Let go to try and read the file!
-        </span>
-        <span
-          slot="fileNotValid"
-          class="w-full h-full p-8 flex justify-center items-center text-center
-          relative">
-          <p>Error : File is not a Tiff :(</p>
-        </span>
-        <span
-          slot="error"
-          class="w-full h-full p-8 flex justify-center items-center text-center
-          relative">
-          <p>Error : {errorMessage}</p>
-        </span>
-        <div
-          slot="start"
-          class="w-full h-full p-8 flex justify-center items-center text-center">
-          {interactionMessage}
-        </div>
-      </DropZone> -->
+      {#if $GeodeStore.file === null}
+        <p>{interactionMessage}</p>
+      {:else if $GeodeStore.processorState === GeodeProcessorState.HEADER_LOAD}
+        <p>Loading Header</p>
+      {:else if $GeodeStore.file && $GeodeStore.processorState === GeodeProcessorState.IDLE}
+        <p>File Loaded</p>
+        <p>{interactionMessage}</p>
+      {/if}
     </div>
     <Footer />
   </div>

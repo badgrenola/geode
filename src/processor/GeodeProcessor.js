@@ -1,5 +1,11 @@
-import { GeodeStore } from '../stores/GeodeStore.js';
-import GeodeWW from 'web-worker:./GeodeWW.js';
+import { get } from 'svelte/store'
+import { GeodeStore } from '../stores/GeodeStore.js'
+import GeodeWW from 'web-worker:./GeodeWW.js'
+
+const GeodeProcessorState = {
+  IDLE: 0,
+  HEADER_LOAD: 1,
+}
 
 //Setup the web worker
 const geodeWorker = new GeodeWW()
@@ -8,12 +14,12 @@ geodeWorker.onmessage = function(e) {
   console.log("GeodeProcessor : Got result")
   const result = e.data
   console.log(result)
+  GeodeStore.setProcessorState(GeodeProcessorState.IDLE)
 }
 
 const onNewFileSelected = (newFile) => {
-
   //If we're already loading, tell the processor to stop 
-  if (GeodeStore.loading) {
+  if (get(GeodeStore).processorState !== GeodeProcessorState.IDLE) {
     console.log("Already processing a file. Cleaning up...")
     stopProcessingAndProcessNewFile(newFile)
     return
@@ -23,7 +29,7 @@ const onNewFileSelected = (newFile) => {
   GeodeStore.setFile(newFile)
 
   //Set the loading state
-  GeodeStore.setLoading(true)
+  GeodeStore.setProcessorState(GeodeProcessorState.HEADER_LOAD)
 
   //Trigger the processing start
   console.log("Starting processing")
@@ -37,7 +43,7 @@ const stopProcessingAndProcessNewFile = (newFile) => {
   setTimeout(() => {
 
     //Set the loading state
-    GeodeStore.setLoading(false)
+    GeodeStore.setProcessorState(GeodeProcessorState.IDLE)
 
     console.log('Processing stopped')
 
@@ -45,4 +51,4 @@ const stopProcessingAndProcessNewFile = (newFile) => {
   }, 500)
 }
 
-export { onNewFileSelected, stopProcessingAndProcessNewFile }
+export { onNewFileSelected, GeodeProcessorState }

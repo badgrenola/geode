@@ -84,7 +84,7 @@
   //Update the dropzone style depending on whether we're in process of dropping/already have a file
   let dropzoneClasses = null
   $: {
-    dropzoneClasses = 'w-full h-full absolute z-10 pointer-events-none'
+    dropzoneClasses = 'w-full h-full pointer-events-none'
     if (errorMessage || (fileNotValid && !isDropping)) {
       dropzoneClasses += ' border-dashed border-4 border-red-500'
     } else if (isDropping) {
@@ -99,7 +99,7 @@
   on:dragleave={onDragLeave}
   on:drop={onDrop} />
 <div
-  class="w-full h-full relative text-sm sm:text-base text-gray-600 font-light ">
+  class="w-full h-full absolute z-10">
   <input
     id="hiddenFileInput"
     type="file"

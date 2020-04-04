@@ -1,4 +1,5 @@
 import { writable } from 'svelte/store'
+import { GeodeProcessorState } from '../processor/GeodeProcessor'
 
 /*
 
@@ -14,7 +15,7 @@ GeodeMetadataStore derives from rawHeader, contains :
 
 const geodeStoreDefaults = {
   file: null,
-  loading: false,
+  processorState: GeodeProcessorState.IDLE,
   rawHeader: null
 }
 
@@ -34,7 +35,7 @@ const createGeodeStore = () => {
 	return {
     subscribe,
     setFile: (data) => updateWrapper('file', data),
-    setLoading: (data) => updateWrapper('loading', data),
+    setProcessorState: (data) => updateWrapper('processorState', data),
     setRawHeader: (data) => updateWrapper('rawHeader', data),
 		reset: () => set({
       file: null
