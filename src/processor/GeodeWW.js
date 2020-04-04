@@ -1,26 +1,30 @@
+import { TiffReader } from './TiffReader'
+
+//Define simple onLoad/onError callbacks for the TiffReader
+const onLoad = (data) => {
+  console.log(data)
+  postMessage({
+    data,
+    error: null
+  })
+}
+
+const onError = (error) => {
+  console.log(error)
+  postMessage({
+    data: null,
+    error
+  })
+}
+
+//Create a TiffReader object
+const reader = new TiffReader(onLoad, onError)
 
 //Setup the on message
 onmessage = (e) => {
-  //Get the file
-  const file = e.data
+  //Right now the only message is 'Start Reading Please', so we don't have to check message types/ids
+  //That'll no doubt come later. TODO
 
-  console.log("WebWorker : Got file")
-  console.log(file)
-
-  //TODO Do the processing
-  setTimeout(() => {
-    postMessage({data: [1, 2, 3], error: null})
-  }, 1000)
-
-  //Pass to the tiff reader to begin reading
-  // const onLoad = (data) => {
-  //   postMessage({
-  //     data,
-  //     error: null,
-  //   })
-  // }
-  // const onError = (errorMessage) => {
-  //   postMessage({ data: null, error: errorMessage })
-  // }
-  // const tiffReader = new TiffReader(file, onLoad, onError)
+  //Start reading the file
+  reader.startReading(e.data)
 }
