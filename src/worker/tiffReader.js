@@ -17,8 +17,6 @@ class TiffReader {
   constructor(file, onLoadCallback, onErrorCallback) {
     console.log('TiffReader : Reading ' + file.name)
 
-    console.log(getUInt8ByteArray)
-
     //Store the file
     this.file = file
 
@@ -66,7 +64,7 @@ class TiffReader {
       const offsets = await this.readIFD(nextIFDOffset)
       nextIFDOffset = offsets.nextIFDOffset
       exifIFDOffset =
-        offsets.exifIFDOffset > 0 ? offset.exifIFDOffset : exifIFDOffset
+        offsets.exifIFDOffset > 0 ? offsets.exifIFDOffset : exifIFDOffset
 
       //Check for errors
       if (this.error) {
@@ -263,18 +261,14 @@ class TiffReader {
       case 3:
         //Short
         return getUInt16FromBytes(slicedBytes, this.byteOrder)
-        break
       case 4:
         //Long
         return getUInt32FromBytes(slicedBytes, this.byteOrder)
-        break
       case 12:
         //Double
         return getDoubleFromBytes(slicedBytes, this.byteOrder)
-        break
       default:
         return null
-        break
     }
   }
 
@@ -445,19 +439,14 @@ class TiffReader {
     switch (dataType) {
       case DataType.Ascii:
         return String.fromCharCode.apply(null, bytes).trim()
-        break
       case DataType.Short:
         return getUInt16sFromBytes(bytes, this.byteOrder)
-        break
       case DataType.Long:
         return getUInt32sFromBytes(bytes, this.byteOrder)
-        break
       case DataType.Double:
         return getDoublesFromBytes(bytes, this.byteOrder)
-        break
       default:
         return null
-        break
     }
   }
 

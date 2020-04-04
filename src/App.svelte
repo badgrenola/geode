@@ -1,73 +1,77 @@
 <script>
   import Header from './components/Header.svelte'
-  import DropZone from './components/DropZone.svelte'
+  import DropZone, { showFileBrowser } from './components/DropZone.svelte'
   import Footer from './components/Footer.svelte'
-  import MetadataView from './components/MetadataView.svelte'
-  import GeodeWW from 'web-worker:./worker/geodeWW.js';
+  // import MetadataView from './components/MetadataView.svelte'
+  // import GeodeWW from 'web-worker:./worker/geodeWW.js';
 
   //Store info
-  let loading = false
-  let fileDetails = null
-  let errorMessage = null
+  // let loading = false
+  // let fileDetails = null
+  // let errorMessage = null
 
   //Get the interaction text
-  let interactionMessage = ''
-  let isMobile =
-    'ontouchstart' in window ||
-    navigator.MaxTouchPoints > 0 ||
-    navigator.msMaxTouchPoints > 0
-  $: {
-    const mobile = `Click the load icon above to browse for ${
-      fileDetails && !errorMessage ? 'another' : 'a'
-    } file on your device`
-    const desktop = `Drag ${
-      fileDetails && !errorMessage ? 'another' : 'a'
-    } file in or click the load icon above to browse`
-    interactionMessage = isMobile ? mobile : desktop
-  }
+  // let interactionMessage = ''
+  // let isMobile =
+  //   'ontouchstart' in window ||
+  //   navigator.MaxTouchPoints > 0 ||
+  //   navigator.msMaxTouchPoints > 0
+  // $: {
+  //   const mobile = `Click the load icon above to browse for ${
+  //     fileDetails && !errorMessage ? 'another' : 'a'
+  //   } file on your device`
+  //   const desktop = `Drag ${
+  //     fileDetails && !errorMessage ? 'another' : 'a'
+  //   } file in or click the load icon above to browse`
+  //   interactionMessage = isMobile ? mobile : desktop
+  // }
 
   //Setup the web worker
-  const worker = new GeodeWW()
-  worker.onmessage = function(e) {
-    //Get the result
-    const result = e.data
+  // const worker = new GeodeWW()
+  // worker.onmessage = function(e) {
+  //   //Get the result
+  //   const result = e.data
 
-    //Look for errors first
-    if (!result || result.error) {
-      //An error was found
-      errorMessage = result.error
-    } else {
-      //No error was found
-      fileDetails = result.data
-      errorMessage = null
-    }
+  //   //Look for errors first
+  //   if (!result || result.error) {
+  //     //An error was found
+  //     errorMessage = result.error
+  //   } else {
+  //     //No error was found
+  //     fileDetails = result.data
+  //     errorMessage = null
+  //   }
 
-    //Switch loading state to false
-    loading = false
-  }
+  //   //Switch loading state to false
+  //   loading = false
+  // }
 
   //Handle the actually file reading
-  const onFileSelected = file => {
-    //Post file to webworker for reading
-    worker.postMessage(file)
+  // const onFileSelected = file => {
+  //   //Post file to webworker for reading
+  //   worker.postMessage(file)
 
-    //Set the state
-    fileDetails = null
-    errorMessage = null
-    loading = true
-  }
+  //   //Set the state
+  //   fileDetails = null
+  //   errorMessage = null
+  //   loading = true
+  // }
 
-  //On load button presse
-  const onLoadButtonPressed = () => {
-    document.getElementById('hiddenFileInput').click()
-  }
+  // //On load button presse
+  // const onLoadButtonPressed = () => {
+  //   document.getElementById('hiddenFileInput').click()
+  // }
 </script>
 
 <main class="w-full h-full">
   <div class="flex flex-col h-full">
-    <Header onLoad={onLoadButtonPressed} />
+    <Header onLoadButtonPressed={(showFileBrowser)} />
     <div class="w-full flex-1 overflow-hidden">
-      <DropZone
+      <DropZone 
+        onFileSelected={(file) => { console.log(file)}}
+      >
+      </DropZone>
+      <!-- <DropZone
         allowClickToLoad={false}
         {loading}
         success={!loading && fileDetails && !errorMessage}
@@ -109,7 +113,7 @@
           class="w-full h-full p-8 flex justify-center items-center text-center">
           {interactionMessage}
         </div>
-      </DropZone>
+      </DropZone> -->
     </div>
     <Footer />
   </div>
