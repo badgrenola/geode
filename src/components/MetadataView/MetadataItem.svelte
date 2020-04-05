@@ -13,7 +13,7 @@
 {#if field}
   <li
     class="relative flex flex-col border-b border-gray-200 h-10 overflow-hidden
-    hover:bg-gray-200 hover:text-teal-700 cursor-pointer
+    hover:bg-gray-200 hover:text-teal-700 cursor-pointer text-xs
     {isExpanded ? ' bg-gray-200 h-auto' : ' '}
     ">
     <div class="absolute left-0 top-0 h-full pointer-events-none w-1 bg-green-600 {field.isGeoKey ? '' : 'hidden'}" />

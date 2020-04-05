@@ -14,9 +14,9 @@
     } file on your device`
     const desktop = `Drag ${
       $GeodeStore.file ? 'another' : 'a'
-    } file in or click the load icon above to browse`
+    } Tiff file into this window, or click the load icon above to browse`
     interactionMessage = isMobile ? mobile : desktop
   }
 </script>
 
-<p>{interactionMessage}</p>
+<p class="w-full h-full p-12 flex justify-center items-center text-center text-gray-900 font-light">{interactionMessage}</p>
