@@ -12,7 +12,7 @@ GeodeMetadataStore derives from rawHeader, contains :
 
 const geodeMetadataStoreDefaults = {
   ifdFields: null,
-  info: null
+  info: null,
 }
 
 //Process the rawData from the GeodeStore into data usable by the Metadata Panel
@@ -30,19 +30,25 @@ const processData = (rawData, set) => {
   //Set the results
   set({
     ifdFields,
-    info
+    info,
   })
 }
 
 //Process the rawData from the GeodeStore into ifd field data displayed in a list in the metadata panel
 const processFields = (rawData) => {
-  return rawData.ifds.map(ifd => {
-    return ifd.fields.map(field => processField(field))
+  return rawData.ifds.map((ifd) => {
+    return ifd.fields
+      .map((field) => processField(field))
+      .filter((field) => field !== null)
   })
 }
 
 //Process a single IFD field into the form needed for display
 const processField = (field) => {
+  //Ignore EXIF field
+  if (field.name === 'Exif IFD') {
+    return null
+  }
 
   //Get the name and data
   const name = field.name
@@ -51,18 +57,18 @@ const processField = (field) => {
   //Set defaults for expandable and shortString
   let expandable = false
   let shortString = field.data
-  
+
   //Undefined
   if (field.data === undefined || field.data === null) {
-    shortString = "None"
-  } 
+    shortString = 'None'
+  }
 
   //Strings
   else if (typeof field.data === typeof '' && field.data.length > 18) {
     expandable = true
     shortString = `${field.data.length} char string`
-  } 
-  
+  }
+
   //Objects
   else if (isObject(field.data)) {
     expandable = true
@@ -81,8 +87,8 @@ const processField = (field) => {
     //If all values are the same
     if (field.data.every((val, i, arr) => val === arr[0])) {
       shortString = `${field.data.length} x [${field.data[0]}]`
-    } 
-    
+    }
+
     //If values are different
     else {
       shortString = `${field.data.length} values`
@@ -94,7 +100,7 @@ const processField = (field) => {
     data,
     expandable,
     shortString,
-    isGeoKey:field.isGeoKey
+    isGeoKey: field.isGeoKey,
   }
 }
 
@@ -120,11 +126,11 @@ const prettyFormatData = (data) => {
 
 //Process the rawData from the GeodeStore into a file info object, displayed at the top of the metadata panel
 const processInfo = (rawData) => {
-  return "hello"
+  return 'hello'
 }
 
 const GeodeMetadataStore = derived(GeodeStore, ($GeodeStore, set) => {
   processData($GeodeStore.rawData, set)
-});
+})
 
 export { GeodeMetadataStore }

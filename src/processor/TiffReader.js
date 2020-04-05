@@ -93,6 +93,10 @@ class TiffReader {
       DataType.Long,
       this.header.byteOrder
     )
+
+    //Finally store the name and size
+    this.header.fileName = this.file.name
+    this.header.fileSize = this.file.size
   }
 
   async parseIFDS() {
@@ -239,6 +243,7 @@ class TiffReader {
     if (offset) {
       data = await this.getOffsetFieldData(offset, valuesCount, dataType)
     }
+    console.log(dataTypeID, data)
 
     //Return an array of the info
     return {

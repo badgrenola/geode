@@ -50,11 +50,15 @@ async function getUInt8ByteArray(file, offset, length) {
 function getDataFromBytes(bytes, dataType, byteOrder) {
   //Check byteorder and return using DataView to set endianness appropriately
   switch (dataType.id) {
+    case 1: //ASCII
+      return String.fromCharCode.apply(null, bytes).trim()
     case 2: //ASCII
       return String.fromCharCode.apply(null, bytes).trim()
     case 3: //Short
       return new DataView(bytes.buffer).getUint16(0, byteOrder === ByteOrder.LittleEndian)
     case 4: //Long
+      return new DataView(bytes.buffer).getUint32(0, byteOrder === ByteOrder.LittleEndian)
+    case 5: //Rational
       return new DataView(bytes.buffer).getUint32(0, byteOrder === ByteOrder.LittleEndian)
     case 12: //Double
       return new DataView(bytes.buffer).getFloat64(0, byteOrder === ByteOrder.LittleEndian)
@@ -73,7 +77,7 @@ function getDataArrayFromBytes(bytes, dataType, byteOrder) {
   })
   
   //If data type is ascii, merge the results
-  if (dataType === DataType.Ascii) {
+  if ([1, 2].includes(dataType.id)) {
     return result.join("")
   }
   return result
