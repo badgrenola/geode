@@ -28,7 +28,6 @@ const prettyFormatData = (data, fieldName) => {
 }
 
 const formatGeoAsciiParams = (data) => {
-  console.log(data)
   const split = data.split('|').filter((item) => item.trim() !== '')
   const pretty = split.map((entry) => {
     if (entry.includes('[')) {
@@ -42,7 +41,6 @@ const formatGeoAsciiParams = (data) => {
 const formatGeoAsciiArrayString = (arrayString) => {
   //Split at the =
   const split = arrayString.split('=')
-  console.log(arrayString)
 
   //Get the params as JSON
   const paramsJSON = getGeoAsciiParamsJSON(split[1])
@@ -52,20 +50,14 @@ const formatGeoAsciiArrayString = (arrayString) => {
 
 const getGeoAsciiParamsJSON = (paramsString) => {
   let stringToConvert = paramsString.trim()
-  console.log(paramsString)
   let result = convertGeoAsciiParamSections(stringToConvert)
-  console.log(result.string)
   while (result.success) {
-    console.log('getting next result')
     result = convertGeoAsciiParamSections(result.string)
-    console.log(result)
   }
-  console.log(result.string)
   return result.string
 }
 
 const convertGeoAsciiParamSections = (paramsString) => {
-  console.log('Converting')
   //Get matches
   const regex = /[A-Z]+(\[(?:\[??[^\[]*?\]))/g
   const results = paramsString.match(regex)
@@ -74,7 +66,6 @@ const convertGeoAsciiParamSections = (paramsString) => {
   if (results) {
     results.forEach((result, i) => {
       //First entry is the whole thing
-      console.log(result)
       finalString = finalString.replace(
         result,
         JSON.stringify(convertGeoAsciiSection(result))

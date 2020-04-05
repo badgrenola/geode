@@ -1,18 +1,16 @@
 import { GeodeStore } from '../stores/GeodeStore.js'
 import { derived } from 'svelte/store'
-import { roundToDP, isObject } from '../helpers/jsHelpers'
+import { toPrecision, isObject } from '../helpers/jsHelpers'
 
 /*
 
 GeodeMetadataStore derives from rawHeader, contains : 
 * ifdFields - nicely formatted field information for the metadata items list, including short-strings/formatted data for display, grouped by IFD
-* info - an object containing cmobined data for the info box at the top of the metadata panel
 
 */
 
 const geodeMetadataStoreDefaults = {
-  ifdFields: null,
-  info: null,
+  ifdFields: null
 }
 
 //Process the rawData from the GeodeStore into data usable by the Metadata Panel
@@ -25,12 +23,10 @@ const processData = (rawData, set) => {
 
   //We have the data.
   const ifdFields = processFields(rawData)
-  const info = processInfo(rawData)
 
   //Set the results
   set({
     ifdFields,
-    info,
   })
 }
 
@@ -40,6 +36,9 @@ const processFields = (rawData) => {
     return ifd.fields
       .map((field) => processField(field))
       .filter((field) => field !== null)
+      .sort((a, b) => {
+        return a.name > b.name ? 1 : -1
+      })
   })
 }
 
@@ -82,9 +81,9 @@ const processField = (field) => {
   }
 
   //Numbers
-  else if (typeof field.data === 'number' && `${field.data}`.includes('.') && `${field.data}`.length > 8) {
+  else if (typeof field.data === 'number' && `${field.data}`.includes('.') && `${field.data}`.length > 6) {
     expandable = true
-    shortString = `${roundToDP(field.data, 5)} to 5dp`
+    shortString = `${toPrecision(field.data, 6)} to 6sf`
   }
 
   //Arrays
@@ -129,11 +128,6 @@ const prettyFormatData = (data) => {
 
   //Any other
   return data
-}
-
-//Process the rawData from the GeodeStore into a file info object, displayed at the top of the metadata panel
-const processInfo = (rawData) => {
-  return 'hello'
 }
 
 const GeodeMetadataStore = derived(GeodeStore, ($GeodeStore, set) => {

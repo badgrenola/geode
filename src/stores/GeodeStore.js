@@ -1,5 +1,5 @@
 import { writable } from 'svelte/store'
-import { GeodeProcessorState } from '../processor/GeodeProcessor'
+import { GeodeProcessorState } from '../processor/GeodeProcessorState'
 
 /*
 

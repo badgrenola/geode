@@ -273,7 +273,6 @@ class TiffReader {
       const geoFields = await getGeoKeyDataFields(this.ifds[i].fields)
       if (geoFields) {
         const geoKeyFields = await getGeoKeyData(geoFields, this.file, this.header.byteOrder)
-        console.log(geoKeyFields)
         geoKeyFields.forEach(geoKeyField => {
           this.ifds[i].fields.push(geoKeyField)
         })

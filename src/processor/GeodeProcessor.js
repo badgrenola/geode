@@ -1,11 +1,8 @@
 import { get } from 'svelte/store'
 import { GeodeStore } from '../stores/GeodeStore.js'
+import { GeodeProcessorState} from './GeodeProcessorState'
 import GeodeWW from 'web-worker:./GeodeWW.js'
 
-const GeodeProcessorState = {
-  IDLE: 0,
-  HEADER_LOAD: 1,
-}
 
 //Setup the web worker
 const geodeWorker = new GeodeWW()

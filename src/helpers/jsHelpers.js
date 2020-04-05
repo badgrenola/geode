@@ -5,6 +5,10 @@ const roundToDP = (num, dp) => {
   return Math.round((num + Number.EPSILON) * divisor) / divisor
 }
 
+const toPrecision = (x, p) => {
+  return Number.parseFloat(x).toPrecision(p);
+}
+
 const reduceTotal = (valuesArray) => {
   return valuesArray.reduce((total, value) => total + value)
 }
@@ -17,4 +21,4 @@ const isObject = value => {
   return value && typeof value === 'object' && value.constructor === Object
 }
 
-export { bytesToMB, range, roundToDP, reduceTotal, isObject }
+export { bytesToMB, range, roundToDP, toPrecision, reduceTotal, isObject }

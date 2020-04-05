@@ -2,7 +2,6 @@ import { TiffReader } from './TiffReader'
 
 //Define simple onLoad/onError callbacks for the TiffReader
 const onLoad = (data) => {
-  console.log(data)
   postMessage({
     data,
     error: null
@@ -10,7 +9,6 @@ const onLoad = (data) => {
 }
 
 const onError = (error) => {
-  console.log(error)
   postMessage({
     data: null,
     error
