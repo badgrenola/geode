@@ -366,6 +366,7 @@ const TiffFields = {
   2059: 'GeogInvFlatteningGeoKey',
   2060: 'GeogAzimuthUnitsGeoKey',
   2061: 'GeogPrimeMeridianLongGeoKey',
+  2062: 'GeogTOWGS84GeoKey',
   3072: 'ProjectedCSTypeGeoKey',
   3073: 'PCSCitationGeoKey',
   3074: 'ProjectionGeoKey',

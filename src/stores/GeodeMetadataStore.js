@@ -57,7 +57,7 @@ const processField = (field) => {
   }
 
   //Get the name and data
-  const name = field.name
+  const name = field.name || `Unknown Key : ${field.id}`
   const data = prettyFormatData(field.data)
 
   //Set defaults for expandable and shortString
