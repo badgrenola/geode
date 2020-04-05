@@ -16,7 +16,7 @@
   }
 </script>
 
-<div class="w-full h-full flex flex-col">
+<div class="w-full flex-1 flex flex-col overflow-hidden">
   {#if !$GeodeMetadataStore.ifdFields}
   <div class="flex w-full h-full items-center justify-center">
     <p>Processing</p>
