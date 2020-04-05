@@ -6,17 +6,14 @@ import { GeodeProcessorState } from '../processor/GeodeProcessor'
 GeodeStore contains : 
 * file - original file object gathered through DnD or load dialog
 * loading - boolean that defines whether the app is currently processing a file
-* rawHeader - all the raw field data
-
-GeodeMetadataStore derives from rawHeader, contains : 
-* fields - nicely formatted field information for the metadata items list, including short-strings/formatted data for display
+* rawData - all the raw field data
 
 */
 
 const geodeStoreDefaults = {
   file: null,
   processorState: GeodeProcessorState.IDLE,
-  rawHeader: null
+  rawData: null
 }
 
 const createGeodeStore = () => {
@@ -36,7 +33,7 @@ const createGeodeStore = () => {
     subscribe,
     setFile: (data) => updateWrapper('file', data),
     setProcessorState: (data) => updateWrapper('processorState', data),
-    setRawHeader: (data) => updateWrapper('rawHeader', data),
+    setRawData: (data) => updateWrapper('rawData', data),
 		reset: () => set({
       file: null
     })

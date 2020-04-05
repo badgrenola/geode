@@ -159,6 +159,7 @@ async function getGeoKeyFields(geoKeyLookups, geoFields) {
       value,
       offset,
       data,
+      isGeoKey:true
     }
 
     geoKeyFields.push(field)

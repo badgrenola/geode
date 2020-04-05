@@ -13,7 +13,7 @@ geodeWorker.onmessage = function(e) {
   //Get the result
   console.log("GeodeProcessor : Got result")
   const result = e.data
-  console.log(result)
+  GeodeStore.setRawData(result.data)
   GeodeStore.setProcessorState(GeodeProcessorState.IDLE)
 }
 

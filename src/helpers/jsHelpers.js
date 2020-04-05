@@ -13,4 +13,8 @@ const bytesToMB = (sizeInBytes) => {
   return roundToDP(sizeInBytes / 1000 / 1000, 2)
 }
 
-export { bytesToMB, range, roundToDP, reduceTotal }
+const isObject = value => {
+  return value && typeof value === 'object' && value.constructor === Object
+}
+
+export { bytesToMB, range, roundToDP, reduceTotal, isObject }

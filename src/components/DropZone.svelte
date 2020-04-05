@@ -99,7 +99,7 @@
   on:dragleave={onDragLeave}
   on:drop={onDrop} />
 <div
-  class="w-full h-full absolute z-10">
+  class="w-full h-full absolute z-10 pointer-events-none" draggable="true">
   <input
     id="hiddenFileInput"
     type="file"
