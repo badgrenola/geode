@@ -243,7 +243,6 @@ class TiffReader {
     if (offset) {
       data = await this.getOffsetFieldData(offset, valuesCount, dataType)
     }
-    console.log(dataTypeID, data)
 
     //Return an array of the info
     return {
