@@ -45,8 +45,14 @@ const processFields = (rawData) => {
 
 //Process a single IFD field into the form needed for display
 const processField = (field) => {
-  //Ignore EXIF field
-  if (field.name === 'Exif IFD') {
+  //Ignore certain fields
+  const ignoredTags = [
+    'Exif IFD',
+    'GeoKeyDirectoryTag',
+    'GeoAsciiParamsTag',
+    'GeoDoubleParamsTag',
+  ]
+  if (ignoredTags.includes(field.name)) {
     return null
   }
 
@@ -56,7 +62,7 @@ const processField = (field) => {
 
   //Set defaults for expandable and shortString
   let expandable = false
-  let shortString = field.data
+  let shortString = field.enumValue || field.data
 
   //Undefined
   if (field.data === undefined || field.data === null) {
@@ -76,21 +82,22 @@ const processField = (field) => {
   }
 
   //Numbers
-  else if (typeof field.data === 'number' && `${field.data}`.length > 10) {
+  else if (typeof field.data === 'number' && `${field.data}`.includes('.') && `${field.data}`.length > 8) {
     expandable = true
     shortString = `${roundToDP(field.data, 5)} to 5dp`
   }
 
   //Arrays
   else if (Array.isArray(field.data)) {
-    expandable = true
     //If all values are the same
     if (field.data.every((val, i, arr) => val === arr[0])) {
+      expandable = false
       shortString = `${field.data.length} x [${field.data[0]}]`
     }
 
     //If values are different
     else {
+      expandable = true
       shortString = `${field.data.length} values`
     }
   }

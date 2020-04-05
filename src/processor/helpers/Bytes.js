@@ -60,6 +60,8 @@ function getDataFromBytes(bytes, dataType, byteOrder) {
       return new DataView(bytes.buffer).getUint32(0, byteOrder === ByteOrder.LittleEndian)
     case 5: //Rational
       return new DataView(bytes.buffer).getUint32(0, byteOrder === ByteOrder.LittleEndian)
+    case 7: //Undefine
+      return String.fromCharCode.apply(null, bytes).trim()
     case 12: //Double
       return new DataView(bytes.buffer).getFloat64(0, byteOrder === ByteOrder.LittleEndian)
     default: 
@@ -77,7 +79,7 @@ function getDataArrayFromBytes(bytes, dataType, byteOrder) {
   })
   
   //If data type is ascii, merge the results
-  if ([1, 2].includes(dataType.id)) {
+  if ([1, 2, 7].includes(dataType.id)) {
     return result.join("")
   }
   return result

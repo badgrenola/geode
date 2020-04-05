@@ -12,10 +12,11 @@
 
 {#if field}
   <li
-    class="flex flex-col border-b border-gray-200 h-10 overflow-hidden
+    class="relative flex flex-col border-b border-gray-200 h-10 overflow-hidden
     hover:bg-gray-200 hover:text-teal-700 cursor-pointer
     {isExpanded ? ' bg-gray-200 h-auto' : ' '}
     ">
+    <div class="absolute left-0 top-0 h-full pointer-events-none w-2 bg-green-600 {field.isGeoKey ? '' : 'hidden'}" />
     <div
       class="w-full flex flex-shrink-0 justify-between h-10 items-center
       border-b border-gray-300"
