@@ -35,7 +35,8 @@ const createGeodeStore = () => {
     setProcessorState: (data) => updateWrapper('processorState', data),
     setRawData: (data) => updateWrapper('rawData', data),
 		reset: () => set({
-      file: null
+      file: null,
+      rawData: null
     })
 	};
 }

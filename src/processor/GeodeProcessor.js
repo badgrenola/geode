@@ -22,6 +22,9 @@ const onNewFileSelected = (newFile) => {
     return
   }
 
+  //Reset the store
+  GeodeStore.reset()
+
   //Add the file to the store
   GeodeStore.setFile(newFile)
 

@@ -9,8 +9,10 @@ GeodeBandStore derives from rawHeader, contains :
 
 */
 
+//Setup a writable store for the current index value
 const CurrentBandIndex = writable(0)
 
+//Create a custom store which combines values derived from the main GeodeStore, and the CurrentBandIndex with an update function
 const createGeodeBandStore = () => {
 
   //Setup the derived store
