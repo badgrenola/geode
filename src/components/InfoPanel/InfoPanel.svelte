@@ -1,5 +1,5 @@
 <script>
-
+  
 </script>
 
 <div
@@ -7,23 +7,19 @@
   overflow-hidden">
   <span class="flex-1 font-semibold text-teal-700 text-sm">Summary</span>
   <div class="flex flex-col text-xs pt-1">
-    <table>
+    <table class="table-auto">
       <tbody>
         <tr>
-          <td>Resolution</td>
+          <td class="text">Resolution</td>
           <td>2048 x 1046</td>
         </tr>
         <tr>
-          <td>Image Type</td>
+          <td class="text">Image Type</td>
           <td>32-Bit Greyscale</td>
         </tr>
         <tr>
-          <td>Structure</td>
-          <td>Tiled</td>
-        </tr>
-        <tr>
-          <td>Compression</td>
-          <td>None</td>
+          <td class="text">Structure</td>
+          <td>Tiled & Compressed</td>
         </tr>
       </tbody>
     </table>

@@ -1,5 +1,5 @@
 import { GeodeStore } from '../stores/GeodeStore.js'
-import { derived } from 'svelte/store'
+import { derived, get } from 'svelte/store'
 import { toPrecision, isObject } from '../helpers/jsHelpers'
 
 /*
@@ -10,7 +10,7 @@ GeodeMetadataStore derives from rawHeader, contains :
 */
 
 const geodeMetadataStoreDefaults = {
-  ifdFields: null
+  ifdFields: null,
 }
 
 //Process the rawData from the GeodeStore into data usable by the Metadata Panel
@@ -33,17 +33,54 @@ const processData = (rawData, set) => {
 //Process the rawData from the GeodeStore into ifd field data displayed in a list in the metadata panel
 const processFields = (rawData) => {
   return rawData.ifds.map((ifd) => {
-    return ifd.fields
-      .map((field) => processField(field))
-      .filter((field) => field !== null)
-      .sort((a, b) => {
-        return a.name > b.name ? 1 : -1
-      })
+    //Split into Image, Structure, Geo and Other Section
+    const imageIDs = [256, 257, 258, 277]
+    const structureIDs = [259, 322, 323, 324, 325, 317]
+    const geoTiffIDs = [33550, 33922, 34264]
+
+    const imageFields = ifd.fields.filter((field) =>
+      imageIDs.includes(field.id)
+    )
+    const structureFields = ifd.fields.filter((field) =>
+      structureIDs.includes(field.id)
+    )
+    const geoFields = ifd.fields.filter((field) => field.isGeoKey || geoTiffIDs.includes(field.id) )
+    const otherFields = ifd.fields.filter(
+      (field) =>
+        !field.isGeoKey &&
+        !geoTiffIDs.includes(field.id) &&
+        !imageIDs.includes(field.id) &&
+        !structureIDs.includes(field.id)
+    )
+
+    return {
+      image: processFieldSection(imageFields),
+      structure: processFieldSection(structureFields),
+      geo: processFieldSection(geoFields),
+      other: processFieldSection(otherFields)
+    }
+
+    // return ifd.fields
+    //   .map((field) => processField(field))
+    //   .filter((field) => field !== null)
+    //   .sort((a, b) => {
+    //     return a.name > b.name ? 1 : -1
+    //   })
   })
+}
+
+const processFieldSection = (fields) => {
+  return fields
+    .map((field) => processField(field))
+    .filter((field) => field !== null)
+    .sort((a, b) => {
+      return a.name > b.name ? 1 : -1
+    })
 }
 
 //Process a single IFD field into the form needed for display
 const processField = (field) => {
+  console.log(field.id, field.name)
   //Ignore certain fields
   const ignoredTags = [
     'Exif IFD',
@@ -81,7 +118,11 @@ const processField = (field) => {
   }
 
   //Numbers
-  else if (typeof field.data === 'number' && `${field.data}`.includes('.') && `${field.data}`.length > 6) {
+  else if (
+    typeof field.data === 'number' &&
+    `${field.data}`.includes('.') &&
+    `${field.data}`.length > 6
+  ) {
     expandable = true
     shortString = `${toPrecision(field.data, 6)} to 6sf`
   }
