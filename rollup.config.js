@@ -17,9 +17,7 @@ export default {
 		file: 'public/build/bundle.js'
 	},
 	plugins: [
-		postcss({
-			extract: true,
-		}),
+		postcss({ extract: "public/build/tailwind.css" }),
 		svelte({
 			// enable run-time checks when not in production
 			dev: !production,
