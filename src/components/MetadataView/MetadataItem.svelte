@@ -25,7 +25,7 @@
         </span>
         <span class="">{field.name}</span>
       </div>
-      <span class="text-right pr-3" title={field.data}>
+      <span class="text-right pr-3 font-light" title={field.data}>
         {field.shortString}
       </span>
     </div>

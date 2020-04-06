@@ -9,16 +9,11 @@
   <div class="flex flex-col text-xs pt-1">
     <table class="table-auto">
       <tbody>
+      <tr colspan="2">
+        <td class="">2048 x 1046, 32-Bit Grayscale</td>
+      </tr>
         <tr>
-          <td class="text">Resolution</td>
-          <td>2048 x 1046</td>
-        </tr>
-        <tr>
-          <td class="text">Image Type</td>
-          <td>32-Bit Greyscale</td>
-        </tr>
-        <tr>
-          <td class="text">Structure</td>
+          <td class="">Structure</td>
           <td>Tiled & Compressed</td>
         </tr>
       </tbody>

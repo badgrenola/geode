@@ -9,16 +9,18 @@
   $: console.log(fields)
 </script>
 
-<h3
-  class="pl-4 h-6 flex flex-col justify-center font-semibold text-gray-100
-  text-xs bg-teal-700 rounded-sm">
-  {sectionName}
-</h3>
-<ul class="">
-  {#each fields as field}
-    <MetadataItem
-      {field}
-      isExpanded={expandedField === field.name}
-      {onToggle} />
-  {/each}
-</ul>
+{#if fields.length > 0}
+  <h3
+    class="pl-4 h-8 flex flex-col justify-center font-semibold text-gray-100
+    text-xs bg-teal-700 rounded-sm z-10">
+    {sectionName}
+  </h3>
+  <ul class="">
+    {#each fields as field}
+      <MetadataItem
+        {field}
+        isExpanded={expandedField === field.name}
+        {onToggle} />
+    {/each}
+  </ul>
+{/if}
