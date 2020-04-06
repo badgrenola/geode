@@ -34,9 +34,9 @@ const processData = (rawData, set) => {
 const processFields = (rawData) => {
   return rawData.ifds.map((ifd) => {
     //Split into Image, Structure, Geo and Other Section
-    const imageIDs = [256, 257, 258, 277]
-    const structureIDs = [259, 322, 323, 324, 325, 317]
-    const geoTiffIDs = [33550, 33922, 34264]
+    const imageIDs = [256, 257, 258, 277, 262]
+    const structureIDs = [259, 284, 322, 323, 324, 325, 317, 339]
+    const geoTiffIDs = [33550, 33922, 34264, 42112, 42113]
 
     const imageFields = ifd.fields.filter((field) =>
       imageIDs.includes(field.id)
@@ -92,6 +92,9 @@ const processField = (field) => {
     return null
   }
 
+  //Set the sf for numbers
+  const sf = 4
+
   //Get the name and data
   const name = field.name || `Unknown Key : ${field.id}`
   const data = prettyFormatData(field.data)
@@ -121,10 +124,10 @@ const processField = (field) => {
   else if (
     typeof field.data === 'number' &&
     `${field.data}`.includes('.') &&
-    `${field.data}`.length > 6
+    `${field.data}`.length > sf
   ) {
     expandable = true
-    shortString = `${toPrecision(field.data, 6)} to 6sf`
+    shortString = `${toPrecision(field.data, sf)} to ${sf}sf`
   }
 
   //Arrays
