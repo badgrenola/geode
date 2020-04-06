@@ -96,7 +96,8 @@ const processField = (field) => {
   const sf = 4
 
   //Get the name and data
-  const name = field.name || `Unknown Key : ${field.id}`
+  let name = field.name || `Unknown Key : ${field.id}`
+  name = name.replace("GeoKey", "").replace("Tag", "")
   const data = prettyFormatData(field.data)
 
   //Set defaults for expandable and shortString
