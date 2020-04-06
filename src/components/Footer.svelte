@@ -8,7 +8,7 @@
       href="https://mattbrealey.com/"
       target="_blank"
       rel="noopener noreferrer"
-      class="text-green-500 hover:text-green-600 hover:underline">
+      class="text-teal-500 hover:text-teal-600 hover:underline">
       Matt Brealey
     </a>
     . Find out
@@ -16,7 +16,7 @@
       href="https://mattbrealey.com/projects/geode"
       target="_blank"
       rel="noopener noreferrer"
-      class="text-green-500 hover:text-green-600 hover:underline">
+      class="text-teal-500 hover:text-teal-600 hover:underline">
       more here
     </a>
     👍
