@@ -1,5 +1,6 @@
 <script>
   import { GeodeBandStore } from '../../stores/GeodeBandStore'
+  import Spinner from '../Spinner.svelte'
 </script>
 
 <div class="p-3 pr-0 flex flex-shrink-0 items-center border-b h-12 select-none">
@@ -23,6 +24,10 @@
         on:click={GeodeBandStore.setBandIndex($GeodeBandStore.currentBandIndex + 1)}>
         ▶
       </button>
+    </div>
+  {:else}
+    <div class="flex-1 h-full flex justify-end items-center pr-3">
+      <Spinner size={4}/>
     </div>
   {/if}
 </div>
