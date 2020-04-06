@@ -23,4 +23,4 @@
 
 </style>
 
-<span class="spinner relative w-{size} h-{size}" />
+<span class="spinner flex-shrink-0 relative w-{size} h-{size}" />

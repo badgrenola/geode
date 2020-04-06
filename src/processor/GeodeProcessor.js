@@ -10,8 +10,11 @@ geodeWorker.onmessage = function(e) {
   //Get the result
   console.log("GeodeProcessor : Got result")
   const result = e.data
-  GeodeStore.setRawData(result.data)
-  GeodeStore.setProcessorState(GeodeProcessorState.IDLE)
+
+  setTimeout(()=>{
+    GeodeStore.setRawData(result.data)
+    GeodeStore.setProcessorState(GeodeProcessorState.IDLE)
+  }, 1000)
 }
 
 const onNewFileSelected = (newFile) => {
@@ -44,9 +47,7 @@ const stopProcessingAndProcessNewFile = (newFile) => {
 
     //Set the loading state
     GeodeStore.setProcessorState(GeodeProcessorState.IDLE)
-
     console.log('Processing stopped')
-
     onNewFileSelected(newFile)
   }, 500)
 }

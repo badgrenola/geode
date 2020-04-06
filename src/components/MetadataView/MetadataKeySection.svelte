@@ -12,7 +12,7 @@
 {#if fields.length > 0}
   <h3
     class="pl-4 h-8 flex flex-col justify-center font-semibold text-gray-100
-    text-xs bg-teal-700 rounded-sm z-10">
+    text-xs bg-teal-800 rounded-sm z-10">
     {sectionName}
   </h3>
   <ul class="">

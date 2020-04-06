@@ -80,7 +80,6 @@ const processFieldSection = (fields) => {
 
 //Process a single IFD field into the form needed for display
 const processField = (field) => {
-  console.log(field.id, field.name)
   //Ignore certain fields
   const ignoredTags = [
     'Exif IFD',

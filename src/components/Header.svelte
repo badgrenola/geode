@@ -2,7 +2,7 @@
   export let onLoadButtonPressed
 </script>
 
-<div class="flex flex-row h-12 bg-teal-900 pl-3 items-center justify-between">
+<div class="flex flex-row h-12 bg-teal-800 pl-3 items-center justify-between">
   <h1 id="geodeTitle" class="flex-1 text-gray-100 text-3xl">Geode</h1>
   <button
     type="button"
