@@ -171,6 +171,12 @@ const prettyFormatData = (data) => {
     return JSON.stringify(data)
   }
 
+  //String
+  if (typeof data === typeof "") {
+    //Convert element brackets to unicode
+    return data.replace(/</g, "&lt;").replace(/>/g, "&gt;")
+  }
+
   //Any other
   return data
 }
