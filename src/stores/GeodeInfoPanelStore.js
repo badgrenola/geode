@@ -1,10 +1,13 @@
 import { GeodeStore } from '../stores/GeodeStore.js'
 import { GeodeBandStore } from '../stores/GeodeBandStore.js'
 import { derived } from 'svelte/store'
+import { bytesToMB } from '../helpers/jsHelpers'
 
 /*
 
 GeodeInfoPanelStore derives from rawHeader, contains : 
+* fileName - the full name of the processed file
+* fileSize - a nicely formatted version of the filesize
 * resolution - a string version of the current band's width x height
 * format - a string describing bit rate and image format (Grayscale/RGB/RGBA) 
 * structure - whether tiled/strip
@@ -16,6 +19,8 @@ GeodeInfoPanelStore derives from rawHeader, contains :
 
 //Determine the defaults
 const geodeInfoPanelDefaults = {
+  fileName: null,
+  fileSize: null,
   resolution: null,
   format: null,
   structure: null,
@@ -80,6 +85,8 @@ const parseInfo = (currentBandIndex, rawData, pixelInfo, set) => {
 
   //Set the new values
   set({
+    fileName: rawData.header.fileName,
+    fileSize: bytesToMB(rawData.header.fileSize),
     resolution,
     format,
     structure,

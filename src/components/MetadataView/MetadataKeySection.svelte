@@ -6,7 +6,6 @@
   export let expandedField
   export let onToggle
 
-  $: console.log(fields)
 </script>
 
 {#if fields.length > 0}
