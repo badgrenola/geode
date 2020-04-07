@@ -7,7 +7,7 @@
 
 <div
   class="p-3 pr-0 flex-shrink-0 flex flex-col border-b select-none
-  overflow-hidden bg-gray-100">
+  overflow-hidden bg-gray-200">
   <span class="flex-1 font-semibold text-teal-700 text-sm">Summary</span>
   <div class="mt-2 grid col-gap-1 row-gap-3 grid-cols-3 text-xs pt-1">
     <div class="flex flex-col col-span-2">
