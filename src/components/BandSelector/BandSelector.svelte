@@ -3,8 +3,8 @@
   import Spinner from '../Spinner.svelte'
 </script>
 
-<div class="p-3 pr-0 flex flex-shrink-0 items-center border-b h-12 select-none bg-gray-200">
-  <span class="flex-1 font-semibold text-teal-700 text-sm">Image Bands</span>
+<div class="p-3 pr-0 flex flex-shrink-0 items-center border-b h-12 select-none bg-gray-200 subpixel-antialiased">
+  <span class="flex-1 font-semibold text-teal-700 text-sm">Image Subfiles</span>
   {#if $GeodeBandStore.bandCount}
     <div class="flex items-center text-xs">
       <button
