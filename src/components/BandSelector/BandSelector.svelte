@@ -26,7 +26,7 @@
       </button>
     </div>
   {:else}
-    <div class="pr-3">
+    <div class="mr-3 w-4 h-4 flex">
       <Spinner size={4}/>
     </div>
   {/if}
