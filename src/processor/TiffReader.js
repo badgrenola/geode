@@ -136,10 +136,19 @@ class TiffReader {
 
     //Finally parse the exif offset if found
     if (exifIFDOffset) {
+      //Parse the EXIF fields to a new IFD
       let parseExifIFDResults = await this.parseIFDAtOffset(exifIFDOffset)
       if (parseExifIFDResults.error) {
         return parseExifIFDResults.error
       }
+
+      //TODO - There's definitely a better way to do this
+      //Merge the EXIF IFD fields into the first IFD, removing the EXIF-only IFD
+      const exifIFD = this.ifds.pop()
+      exifIFD.fields.forEach(field => {
+        this.ifds[0].fields.push(field)
+        console.log(field)
+      })
     }
   }
 
