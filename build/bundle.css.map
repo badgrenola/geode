@@ -5,7 +5,7 @@
     "../../Spinner.svelte"
   ],
   "sourcesContent": [
-    "<script>\n  export let size;\n</script>\n\n<style>\n  @keyframes spinner {\n    to {\n      transform: rotate(360deg);\n    }\n  }\n\n  .spinner:before {\n    content: '';\n    box-sizing: border-box;\n    width: 100%;\n    height: 100%;\n    position: absolute;\n    border-radius: 50%;\n    border: 2px solid #ccc;\n    border-top-color: #234e52;\n    animation: spinner 0.6s linear infinite;\n  }\n\n</style>\n\n<span class=\"spinner flex-shrink-0 relative w-{size} h-{size}\" />"
+    "<script>\n  export let size;\n</script>\n\n<style>\n  @keyframes spinner {\n    to {\n      transform: rotate(360deg);\n    }\n  }\n\n  .spinner:before {\n    content: '';\n    box-sizing: border-box;\n    width: 100%;\n    height: 100%;\n    position: absolute;\n    border-radius: 50%;\n    border: 2px solid #ccc;\n    border-top-color: #234e52;\n    animation: spinner 0.6s linear infinite;\n  }\n\n</style>\n\n<div class=\"w-{size} h-{size} flex flex-shrink-0 justify-end items-center\">\n  <span class=\"spinner flex-shrink-0 relative w-{size} h-{size}\" />\n</div>"
   ],
   "names": [],
   "mappings": "AAKE,WAAW,sBAAQ,CAAC,AAClB,EAAE,AAAC,CAAC,AACF,SAAS,CAAE,OAAO,MAAM,CAAC,AAC3B,CAAC,AACH,CAAC,AAED,uBAAQ,OAAO,AAAC,CAAC,AACf,OAAO,CAAE,EAAE,CACX,UAAU,CAAE,UAAU,CACtB,KAAK,CAAE,IAAI,CACX,MAAM,CAAE,IAAI,CACZ,QAAQ,CAAE,QAAQ,CAClB,aAAa,CAAE,GAAG,CAClB,MAAM,CAAE,GAAG,CAAC,KAAK,CAAC,IAAI,CACtB,gBAAgB,CAAE,OAAO,CACzB,SAAS,CAAE,sBAAO,CAAC,IAAI,CAAC,MAAM,CAAC,QAAQ,AACzC,CAAC"
