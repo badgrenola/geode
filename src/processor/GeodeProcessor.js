@@ -10,11 +10,8 @@ geodeWorker.onmessage = function(e) {
   //Get the result
   console.log("GeodeProcessor : Got result")
   const result = e.data
-
-  setTimeout(()=>{
-    GeodeStore.setRawData(result.data)
-    GeodeStore.setProcessorState(GeodeProcessorState.IDLE)
-  }, 1000)
+  GeodeStore.setRawData(result.data)
+  GeodeStore.setProcessorState(GeodeProcessorState.IDLE)
 }
 
 const onNewFileSelected = (newFile) => {
