@@ -34,9 +34,23 @@ const processData = (rawData, set) => {
 const processFields = (rawData) => {
   return rawData.ifds.map((ifd) => {
     //Split into Image, Structure, Geo and Other Section
-    const imageIDs = [256, 257, 258, 277, 262, 338]
-    const structureIDs = [259, 284, 322, 323, 324, 325, 317, 339, 273, 278, 279, 559]
+    const imageIDs = [256, 257, 258, 277, 262, 338, 254]
+    const structureIDs = [
+      259,
+      284,
+      322,
+      323,
+      324,
+      325,
+      317,
+      339,
+      273,
+      278,
+      279,
+      559,
+    ]
     const geoTiffIDs = [33550, 33922, 34264, 42112, 42113]
+    const exifIDs = [40961, 40962, 40963]
 
     const imageFields = ifd.fields.filter((field) =>
       imageIDs.includes(field.id)
@@ -44,20 +58,26 @@ const processFields = (rawData) => {
     const structureFields = ifd.fields.filter((field) =>
       structureIDs.includes(field.id)
     )
-    const geoFields = ifd.fields.filter((field) => field.isGeoKey || geoTiffIDs.includes(field.id) )
+    const geoFields = ifd.fields.filter(
+      (field) => field.isGeoKey || geoTiffIDs.includes(field.id)
+    )
+    const exifFields = ifd.fields.filter((field) => exifIDs.includes(field.id))
+
     const otherFields = ifd.fields.filter(
       (field) =>
         !field.isGeoKey &&
         !geoTiffIDs.includes(field.id) &&
         !imageIDs.includes(field.id) &&
-        !structureIDs.includes(field.id)
+        !structureIDs.includes(field.id) &&
+        !exifIDs.includes(field.id)
     )
 
     return {
       image: processFieldSection(imageFields),
       structure: processFieldSection(structureFields),
       geo: processFieldSection(geoFields),
-      other: processFieldSection(otherFields)
+      exif: processFieldSection(exifFields),
+      other: processFieldSection(otherFields),
     }
 
     // return ifd.fields
@@ -96,7 +116,7 @@ const processField = (field) => {
 
   //Get the name and data
   let name = field.name || `Unknown Key : ${field.id}`
-  name = name.replace("GeoKey", "").replace("Tag", "")
+  name = name.replace('GeoKey', '').replace('Tag', '')
   const prettyData = prettyFormatData(field.data)
 
   //Set defaults for expandable and shortString
@@ -172,9 +192,9 @@ const prettyFormatData = (data) => {
   }
 
   //String
-  if (typeof data === typeof "") {
+  if (typeof data === typeof '') {
     //Convert element brackets to unicode
-    return data.replace(/</g, "&lt;").replace(/>/g, "&gt;")
+    return data.replace(/</g, '&lt;').replace(/>/g, '&gt;')
   }
 
   //Any other

@@ -8,7 +8,7 @@
   let expandedField = null
 
   //Set the sections
-  let keySections = ['Geo', 'Image', 'Structure', 'Other']
+  let keySections = ['Geo', 'Image', 'Structure', 'EXIF', 'Other']
 
   //Toggle the currently expanded field
   const toggleSelectedField = fieldName => {
