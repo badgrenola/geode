@@ -167,6 +167,12 @@ const ColorSpace = {
   Uncalibrated: 65535,
 }
 
+const NewSubfileType = {
+  REDUCEDIMAGE: 1,
+  PAGE: 2,
+  MASK: 4,
+}
+
 const Enums = {
   Compression: Compression,
   PhotometricInterpretation: PhotometricInterpretation,
@@ -184,6 +190,7 @@ const Enums = {
   GeographicTypeGeoKey: GeographicTypeGeoKey,
   GeogAngularUnitsGeoKey: GeogAngularUnitsGeoKey,
   ColorSpace: ColorSpace,
+  NewSubfileType: NewSubfileType
 }
 
 function getEnumKeyFromFieldNameAndValue(fieldName, value) {
