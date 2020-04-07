@@ -23,4 +23,7 @@
 
 </style>
 
-<span class="spinner flex-shrink-0 relative w-{size} h-{size}" />
+
+<div class="relative w-{size} h-{size} flex justify-center items-center overflow-hidden">
+  <span class="spinner w-full h-full" />
+</div>
