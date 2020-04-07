@@ -39,7 +39,7 @@
         <span
           class="p-1 break-words bg-gray-100 w-full cursor-text select-text
           overflow-hidden">
-          {@html field.data}
+          {@html field.prettyData}
         </span>
       </div>
     {/if}

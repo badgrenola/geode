@@ -7,13 +7,15 @@ GeodeStore contains :
 * file - original file object gathered through DnD or load dialog
 * loading - boolean that defines whether the app is currently processing a file
 * rawData - all the raw field data
+* pixelInfo - any calculated pixel info
 
 */
 
 const geodeStoreDefaults = {
   file: null,
   processorState: GeodeProcessorState.IDLE,
-  rawData: null
+  rawData: null,
+  pixelInfo: null,
 }
 
 const createGeodeStore = () => {

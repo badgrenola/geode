@@ -34,8 +34,8 @@ const processData = (rawData, set) => {
 const processFields = (rawData) => {
   return rawData.ifds.map((ifd) => {
     //Split into Image, Structure, Geo and Other Section
-    const imageIDs = [256, 257, 258, 277, 262]
-    const structureIDs = [259, 284, 322, 323, 324, 325, 317, 339]
+    const imageIDs = [256, 257, 258, 277, 262, 338]
+    const structureIDs = [259, 284, 322, 323, 324, 325, 317, 339, 273, 278, 279, 559]
     const geoTiffIDs = [33550, 33922, 34264, 42112, 42113]
 
     const imageFields = ifd.fields.filter((field) =>
@@ -97,7 +97,7 @@ const processField = (field) => {
   //Get the name and data
   let name = field.name || `Unknown Key : ${field.id}`
   name = name.replace("GeoKey", "").replace("Tag", "")
-  const data = prettyFormatData(field.data)
+  const prettyData = prettyFormatData(field.data)
 
   //Set defaults for expandable and shortString
   let expandable = false
@@ -147,7 +147,8 @@ const processField = (field) => {
 
   return {
     name,
-    data,
+    data: field.data,
+    prettyData,
     expandable,
     shortString,
     isGeoKey: field.isGeoKey,
