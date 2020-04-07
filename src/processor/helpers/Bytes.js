@@ -62,6 +62,8 @@ function getDataFromBytes(bytes, dataType, byteOrder) {
       return new DataView(bytes.buffer).getUint32(0, byteOrder === ByteOrder.LittleEndian)
     case 7: //Undefine
       return String.fromCharCode.apply(null, bytes).trim()
+    case 11: //Float
+      return new DataView(bytes.buffer).getFloat32(0, byteOrder === ByteOrder.LittleEndian)
     case 12: //Double
       return new DataView(bytes.buffer).getFloat64(0, byteOrder === ByteOrder.LittleEndian)
     default: 
@@ -72,6 +74,8 @@ function getDataFromBytes(bytes, dataType, byteOrder) {
 function getDataArrayFromBytes(bytes, dataType, byteOrder) {
   let offset = 0
   let byteCount = dataType.byteCount[0]
+
+  //TODO : CONVERT DIRECTLY HERE using the DataView object!
   const result = range(bytes.byteLength / byteCount).map((index) => {
     offset = index * byteCount
     const byteSlice = bytes.slice(offset, offset + byteCount)

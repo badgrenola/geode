@@ -65,7 +65,7 @@ class TiffReader {
     this.onLoad({
       header: this.header,
       ifds: this.ifds,
-    })
+    }, this.file)
   }
 
   async getHeader() {
