@@ -9,7 +9,7 @@
   class="p-3 pr-0 flex-shrink-0 flex flex-col border-b select-none
   overflow-hidden bg-gray-200">
   <span class="flex-1 font-semibold text-teal-700 text-sm">Summary</span>
-  <div class="mt-2 grid col-gap-1 row-gap-3 grid-cols-3 text-xs pt-1">
+  <div class="grid col-gap-1 row-gap-3 grid-cols-3 text-xs sm:mt-2">
     <div class="flex flex-col col-span-2">
       <span class="font-semibold text-teal-800">Name</span>
       {#if $GeodeInfoPanelStore.fileName}
@@ -61,7 +61,9 @@
         <Spinner size={spinnerSize} />
       {/if}
     </div>
-    <!-- <div class="flex flex-col">
+
+    
+    <div class="flex flex-col">
       <span class="font-semibold text-teal-800">Min Value</span>
       {#if $GeodeInfoPanelStore.minValue}
         <span class="font-light text-gray-700">{$GeodeInfoPanelStore.minValue}</span>
@@ -84,6 +86,6 @@
       {:else}
         <Spinner size={spinnerSize} />
       {/if}
-    </div> -->
+    </div>
   </div>
 </div>
