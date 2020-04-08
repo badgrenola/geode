@@ -10,11 +10,11 @@ import {reduceTotal} from '../helpers/jsHelpers'
 import { TiffFields } from './helpers/TiffFields'
 import { getGeoKeyDataFields, getGeoKeyData } from './helpers/GeoTiff'
 import { getEnumKeyFromFieldNameAndValue } from './helpers/Enums'
+import { GeodeProcessorMessageType } from './GeodeProcessorMessageType'
 
 class TiffReader {
-  constructor(onLoad, onError) {
-    this.onLoad = onLoad
-    this.onError = onError
+  constructor(sendMessage) {
+    this.sendMessage = sendMessage
 
     //Store state vars
     this.file = null
@@ -40,21 +40,21 @@ class TiffReader {
     //Get the header
     const headerReadError = await this.getHeader()
     if (headerReadError) {
-      this.onError(headerReadError)
+      this.sendMessage(GeodeProcessorMessageType.ERROR, null, headerReadError)
       return
     }
 
     //Parse the IFDs
     const parseIFDsError = await this.parseIFDS()
     if (parseIFDsError) {
-      this.onError(parseIFDsError)
+      this.sendMessage(GeodeProcessorMessageType.ERROR, null, parseIFDsError)
       return
     }
 
     //Once the basic IFD data has been found, parse geotiff specific data
     const geotiffParseError = await this.parseGeoTiff()
     if (geotiffParseError) {
-      this.onError(geotiffParseError)
+      this.sendMessage(GeodeProcessorMessageType.ERROR, null, geotiffParseError)
       return
     }
 
@@ -62,10 +62,13 @@ class TiffReader {
     this.populateEnumValues()
 
     //Return the header and ifd info
-    this.onLoad({
-      header: this.header,
-      ifds: this.ifds,
-    })
+    this.sendMessage(
+      GeodeProcessorMessageType.HEADER_LOADED,
+      {
+        header: this.header,
+        ifds: this.ifds,
+      }
+    )
   }
 
   async getHeader() {

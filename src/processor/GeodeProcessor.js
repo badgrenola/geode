@@ -1,17 +1,33 @@
 import { get } from 'svelte/store'
 import { GeodeStore } from '../stores/GeodeStore.js'
-import { GeodeProcessorState} from './GeodeProcessorState'
+import { GeodeProcessorState } from './GeodeProcessorState'
+import { GeodeProcessorMessageType } from './GeodeProcessorMessageType'
 import GeodeWW from 'web-worker:./GeodeWW.js'
 
 
 //Setup the web worker
 const geodeWorker = new GeodeWW()
 geodeWorker.onmessage = function(e) {
-  //Get the result
-  console.log("GeodeProcessor : Got result")
-  const result = e.data
-  GeodeStore.setRawData(result.data)
-  GeodeStore.setProcessorState(GeodeProcessorState.IDLE)
+
+  //Get the message
+  const message = e.data
+
+  //Check message type
+  switch (message.type) {
+    case GeodeProcessorMessageType.ERROR:
+      console.error("GeodeProcessor : Received an error message")
+      console.log(message.error)
+      //TODO : Handle error
+      break;
+    case GeodeProcessorMessageType.HEADER_LOADED:
+      console.log("GeodeProcessor : WebWorker has finished loading the header")
+      GeodeStore.setRawData(message.data)
+      GeodeStore.setProcessorState(GeodeProcessorState.IDLE)
+      break;
+    default: 
+      console.error("Unknown message received from WebWorker")
+      console.error(message)
+  }
 }
 
 const onNewFileSelected = (newFile) => {

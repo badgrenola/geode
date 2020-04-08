@@ -1,22 +1,16 @@
 import { TiffReader } from './TiffReader'
 
 //Define simple onLoad/onError callbacks for the TiffReader
-const onLoad = (data) => {
+const sendMessageToMain = (type, data, error) => {
   postMessage({
-    data,
-    error: null
-  })
-}
-
-const onError = (error) => {
-  postMessage({
-    data: null,
-    error
+    type,
+    data: data || null,
+    error: error || null
   })
 }
 
 //Create a TiffReader object
-const reader = new TiffReader(onLoad, onError)
+const reader = new TiffReader(sendMessageToMain)
 
 //Setup the on message
 onmessage = (e) => {
