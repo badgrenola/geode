@@ -1,8 +1,8 @@
 <footer
-  class="text-center text-xs text-gray-500 p-4 border-t flex flex-col
+  class="text-center text-xs text-gray-500 p-2 sm:p-4 border-t flex flex-col
   sm:flex-row">
   <p class="flex-1 italic">No information on your files is uploaded.</p>
-  <div class="flex-1 pt-2 sm:pt-0">
+  <div class="flex-1">
     Created by
     <a
       href="https://mattbrealey.com/"
