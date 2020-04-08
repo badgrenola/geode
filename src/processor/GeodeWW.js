@@ -26,7 +26,7 @@ onmessage = (e) => {
       break;
     case GeodeProcessorMessageType.LOAD_PIXELS:
       //Start loading the pixels
-      console.log("Start loading pixels")
+      reader.parsePixels()
       break;
     default:
       console.error("GeodeWW : Unknown message type received")

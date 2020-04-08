@@ -43,7 +43,7 @@ geodeWorker.onmessage = function(e) {
 const onNewFileSelected = (file) => {
   //If we're already loading, tell the processor to stop 
   if (get(GeodeStore).processorState !== GeodeProcessorState.IDLE) {
-    console.log("Already processing a file. Cleaning up...")
+    console.log("GeodeProcessor: Already processing a file. Cleaning up...")
     stopProcessingAndProcessNewFile(file)
     return
   }
@@ -58,7 +58,7 @@ const onNewFileSelected = (file) => {
   GeodeStore.setProcessorState(GeodeProcessorState.HEADER_LOAD)
 
   //Trigger the processing start
-  console.log("Starting processing")
+  console.log("GeodeProcessor: Starting processing")
   geodeWorker.postMessage({
     type: GeodeProcessorMessageType.LOAD_HEADER,
     file

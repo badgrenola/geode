@@ -62,6 +62,7 @@ class TiffReader {
     this.populateEnumValues()
 
     //Return the header and ifd info
+    console.log('TiffReader : Finished Reading File Header')
     this.sendMessage(
       TiffProcessorMessageType.HEADER_LOADED,
       {
@@ -298,6 +299,11 @@ class TiffReader {
         field.enumValue = getEnumKeyFromFieldNameAndValue(field.name, field.value)
       })
     })
+  }
+
+  //Pixel reading
+  async parsePixels() {
+    
   }
 
 }
