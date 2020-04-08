@@ -1,6 +1,6 @@
 const GeodeProcessorMessageType = {
-  ERROR: -1,
-  HEADER_LOADED: 2,
+  LOAD_HEADER: 0,
+  LOAD_PIXELS: 1,
 }
 
 export { GeodeProcessorMessageType }

@@ -1,4 +1,5 @@
 import { TiffReader } from './TiffReader'
+import { GeodeProcessorMessageType } from './GeodeProcessorMessageType'
 
 //Define simple onLoad/onError callbacks for the TiffReader
 const sendMessageToMain = (type, data, error) => {
@@ -12,11 +13,23 @@ const sendMessageToMain = (type, data, error) => {
 //Create a TiffReader object
 const reader = new TiffReader(sendMessageToMain)
 
-//Setup the on message
+//Setup the on message from the main thread
 onmessage = (e) => {
-  //Right now the only message is 'Start Reading Please', so we don't have to check message types/ids
-  //That'll no doubt come later. TODO
 
-  //Start reading the file
-  reader.startReading(e.data)
+  //Get the message
+  const message = e.data
+
+  switch (message.type) {
+    case GeodeProcessorMessageType.LOAD_HEADER:
+      //Start reading the header
+      reader.readHeader(message.file)
+      break;
+    case GeodeProcessorMessageType.LOAD_PIXELS:
+      //Start loading the pixels
+      console.log("Start loading pixels")
+      break;
+    default:
+      console.error("GeodeWW : Unknown message type received")
+      console.error(message)
+  }
 }

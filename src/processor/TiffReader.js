@@ -10,7 +10,7 @@ import {reduceTotal} from '../helpers/jsHelpers'
 import { TiffFields } from './helpers/TiffFields'
 import { getGeoKeyDataFields, getGeoKeyData } from './helpers/GeoTiff'
 import { getEnumKeyFromFieldNameAndValue } from './helpers/Enums'
-import { GeodeProcessorMessageType } from './GeodeProcessorMessageType'
+import { TiffProcessorMessageType } from './TiffProcessorMessageType'
 
 class TiffReader {
   constructor(sendMessage) {
@@ -28,8 +28,8 @@ class TiffReader {
     this.ifds = []
   }
 
-  async startReading(file) {
-    console.log('TiffReader : Starting to Read File')
+  async readHeader(file) {
+    console.log('TiffReader : Starting to Read File Header')
 
     //Reset any state vars
     this.reset()
@@ -40,21 +40,21 @@ class TiffReader {
     //Get the header
     const headerReadError = await this.getHeader()
     if (headerReadError) {
-      this.sendMessage(GeodeProcessorMessageType.ERROR, null, headerReadError)
+      this.sendMessage(TiffProcessorMessageType.ERROR, null, headerReadError)
       return
     }
 
     //Parse the IFDs
     const parseIFDsError = await this.parseIFDS()
     if (parseIFDsError) {
-      this.sendMessage(GeodeProcessorMessageType.ERROR, null, parseIFDsError)
+      this.sendMessage(TiffProcessorMessageType.ERROR, null, parseIFDsError)
       return
     }
 
     //Once the basic IFD data has been found, parse geotiff specific data
     const geotiffParseError = await this.parseGeoTiff()
     if (geotiffParseError) {
-      this.sendMessage(GeodeProcessorMessageType.ERROR, null, geotiffParseError)
+      this.sendMessage(TiffProcessorMessageType.ERROR, null, geotiffParseError)
       return
     }
 
@@ -63,7 +63,7 @@ class TiffReader {
 
     //Return the header and ifd info
     this.sendMessage(
-      GeodeProcessorMessageType.HEADER_LOADED,
+      TiffProcessorMessageType.HEADER_LOADED,
       {
         header: this.header,
         ifds: this.ifds,

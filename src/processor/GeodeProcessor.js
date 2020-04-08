@@ -1,12 +1,15 @@
 import { get } from 'svelte/store'
 import { GeodeStore } from '../stores/GeodeStore.js'
 import { GeodeProcessorState } from './GeodeProcessorState'
+import { TiffProcessorMessageType } from './TiffProcessorMessageType'
 import { GeodeProcessorMessageType } from './GeodeProcessorMessageType'
 import GeodeWW from 'web-worker:./GeodeWW.js'
 
 
-//Setup the web worker
+//Create the webworker
 const geodeWorker = new GeodeWW()
+
+//Setup responding to messages FROM the web worker
 geodeWorker.onmessage = function(e) {
 
   //Get the message
@@ -14,15 +17,21 @@ geodeWorker.onmessage = function(e) {
 
   //Check message type
   switch (message.type) {
-    case GeodeProcessorMessageType.ERROR:
+    case TiffProcessorMessageType.ERROR:
       console.error("GeodeProcessor : Received an error message")
       console.log(message.error)
       //TODO : Handle error
       break;
-    case GeodeProcessorMessageType.HEADER_LOADED:
+    case TiffProcessorMessageType.HEADER_LOADED:
       console.log("GeodeProcessor : WebWorker has finished loading the header")
       GeodeStore.setRawData(message.data)
-      GeodeStore.setProcessorState(GeodeProcessorState.IDLE)
+      GeodeStore.setProcessorState(GeodeProcessorState.PIXEL_LOADING)
+
+      //Tell the webworker to start processing the pixel data
+      geodeWorker.postMessage({
+        type:GeodeProcessorMessageType.LOAD_PIXELS
+      })
+
       break;
     default: 
       console.error("Unknown message received from WebWorker")
@@ -30,11 +39,12 @@ geodeWorker.onmessage = function(e) {
   }
 }
 
-const onNewFileSelected = (newFile) => {
+//Setup communicating to the webworker
+const onNewFileSelected = (file) => {
   //If we're already loading, tell the processor to stop 
   if (get(GeodeStore).processorState !== GeodeProcessorState.IDLE) {
     console.log("Already processing a file. Cleaning up...")
-    stopProcessingAndProcessNewFile(newFile)
+    stopProcessingAndProcessNewFile(file)
     return
   }
 
@@ -42,14 +52,17 @@ const onNewFileSelected = (newFile) => {
   GeodeStore.reset()
 
   //Add the file to the store
-  GeodeStore.setFile(newFile)
+  GeodeStore.setFile(file)
 
   //Set the loading state
   GeodeStore.setProcessorState(GeodeProcessorState.HEADER_LOAD)
 
   //Trigger the processing start
   console.log("Starting processing")
-  geodeWorker.postMessage(newFile)
+  geodeWorker.postMessage({
+    type: GeodeProcessorMessageType.LOAD_HEADER,
+    file
+  })
 
 }
 
