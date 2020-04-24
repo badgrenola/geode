@@ -1,11 +1,15 @@
-import { TiffProcessorMessageType } from '../TiffProcessorMessageType'
+import { TiffProcessorMessageType } from './TiffProcessorMessageType'
 import { TiffType } from './TiffType'
+import { DataType, getUInt8ByteArray, getDataArrayFromBytes } from '../helpers/Bytes'
 
 class TiffPixelReader {
 
   constructor(tiffReader) {
     //Store the tiff reader instance
     this.tiffReader = tiffReader
+
+    //Store a default proxy level
+    this.proxyLevel = 4
   }
 
   //Pixel reading
@@ -34,11 +38,6 @@ class TiffPixelReader {
 
   async parseStripFile() {
 
-    if (!width || !length || !stripOffsets || !stripByteCounts || !samplesPerPixel || !bitsPerSample) {
-      this.tiffReader.sendMessage(TiffProcessorMessageType.ERROR, null, "Cannot find strip info")
-      return
-    }
-
     const fields = this.tiffReader.ifds[0].fields
     const width = fields.find(field => field.id === 256)
     const length = fields.find(field => field.id === 257)
@@ -47,63 +46,57 @@ class TiffPixelReader {
     const samplesPerPixel = fields.find(field => field.id === 277)
     const bitsPerSample = fields.find(field => field.id === 258)
     const noData = fields.find(field => field.id === 42113)
-    // console.log(fields)
 
+    if (!width || !length || !stripOffsets || !stripByteCounts || !samplesPerPixel || !bitsPerSample || !noData) {
+      this.tiffReader.sendMessage(TiffProcessorMessageType.ERROR, null, "Cannot find strip info")
+      return
+    }
 
-    // // console.log(fields)
+    let noVal = parseFloat(noData.data)
+    const arrMin = arr => Math.min(...arr.filter(v => v !== noVal));
+    const arrMax = arr => Math.max(...arr.filter(v => v !== noVal));
+    const arrAvg = (arr) => (arr.reduce((a,b) => a + b, 0) / arr.length)
 
-    // const proxy = 1
-    // console.time(`Proxy ${proxy} byte conversion`)
+    let min = 999999
+    let max = -999999
+    let averages = []
 
-    // const arrMin = arr => Math.min(...arr);
-    // // const arrMax = arr => Math.max(...arr);
-    // const arrAvg = (arr) => (arr.reduce((a,b) => a + b, 0) / arr.length)
+    console.time(`Proxy ${this.proxyLevel} pixel read`)
 
-    // let noVal = parseFloat(noData.data)
-    // let min = 999999
-    // let max = -999999
-    // let averages = []
-    // const proxySq = proxy*proxy
-    // const proxyWidth = width.data / proxySq
-    // const proxyHeight = length.data / proxySq
+    let dataType = DataType.Short
+    if (bitsPerSample.data === 32) {
+      dataType = DataType.Float
+    }
 
-    // console.log(proxyWidth, proxyHeight)
+    //For each strip
+    for (var stripIndex = 0; stripIndex<length.data; stripIndex += this.proxyLevel) {
+      //Get the strip data as floats
+      //TODO : Figure out data type properly
+      let bytes = await getUInt8ByteArray(this.tiffReader.file, stripOffsets.data[stripIndex], stripByteCounts.data[stripIndex])
+      let results = getDataArrayFromBytes(bytes, dataType, this.tiffReader.header.byteOrder, this.proxyLevel)
 
-    // for (var i = 0; i < proxyHeight; i++) {
-    //   const offset = stripOffsets.data[i]
-    //   const byteCount = stripByteCounts.data[i] / proxySq
-    //   const bytesPerVal = 4
-    //   const buffer = await new Response(this.tiffReader.file.slice(offset, offset + byteCount - 1)).arrayBuffer()
-    //   const dv = new DataView(buffer)
+      let rowMin = arrMin(results)
+      let rowMax = arrMax(results)
+      if (isFinite(rowMin) && rowMin < min) { min = rowMin }
+      if (isFinite(rowMax) && rowMax > max) { max = rowMax }
 
-    //   let rowMin = 999999
-    //   let rowMax = -999999
-    //   let rowVals = []
+      let validVals = results.filter(v => v !== noVal)
+      if (validVals.length) {
+        averages.push(arrAvg(validVals))
+      }
+    }
 
-    //   for (var j = 0; j < proxyHeight -1 ; j++) {
-    //     // console.log(j)
-    //     const val = dv.getFloat32(j*bytesPerVal, this.tiffReader.header.byteOrder === ByteOrder.LittleEndian)
-    //     if (val !== noVal) {
-    //       if (val < rowMin) { rowMin = val }
-    //       if (val > rowMax) { rowMax = val }
-    //       rowVals.push(val)
-    //     }
-    //   }
-      
-    //   if (rowMin < min) { min = rowMin }
-    //   if (rowMax > max) { max = rowMax }
-    //   averages.push(arrAvg(rowVals))
-    //   // console.log(result)
-    //   // break
-    // }
+    let mean = arrAvg(averages)
 
-    // console.log(averages)
-    // const mean = arrAvg(averages)
-    // console.log(min, max, mean)
+    console.timeEnd(`Proxy ${this.proxyLevel} pixel read`)
 
-    // console.timeEnd(`Proxy ${proxy} byte conversion`)
-    // console.log(width.data/proxySq, length.data / proxySq)
+    this.tiffReader.sendMessage(TiffProcessorMessageType.PIXEL_INFO_LOADED, {
+      min,
+      max,
+      mean
+    })
   }
+
 }
 
 export { TiffPixelReader }

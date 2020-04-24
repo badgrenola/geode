@@ -1,4 +1,4 @@
-import { range } from '../../helpers/jsHelpers'
+import { range, rangeSkipping } from '../../helpers/jsHelpers'
 
 const ByteOrder = {
   Null: null,
@@ -71,10 +71,18 @@ function getDataFromBytes(bytes, dataType, byteOrder) {
   }
 }
 
-function getDataArrayFromBytes(bytes, dataType, byteOrder) {
+function getDataArrayFromBytes(bytes, dataType, byteOrder, skip) {
   let offset = 0
   let byteCount = dataType.byteCount[0]
-  const result = range(bytes.byteLength / byteCount).map((index) => {
+
+  let byteRange = null;
+  if (skip) {
+    byteRange = rangeSkipping(bytes.byteLength / byteCount, skip)
+  } else {
+    byteRange = range(bytes.byteLength / byteCount)
+  }
+
+  const result = byteRange.map((index) => {
     offset = index * byteCount
     const byteSlice = bytes.slice(offset, offset + byteCount)
     return getDataFromBytes(byteSlice, dataType, byteOrder)

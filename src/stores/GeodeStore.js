@@ -36,6 +36,7 @@ const createGeodeStore = () => {
     setFile: (data) => updateWrapper('file', data),
     setProcessorState: (data) => updateWrapper('processorState', data),
     setRawData: (data) => updateWrapper('rawData', data),
+    setPixelInfo: (data) => updateWrapper('pixelInfo', data),
 		reset: () => set({
       file: null,
       rawData: null

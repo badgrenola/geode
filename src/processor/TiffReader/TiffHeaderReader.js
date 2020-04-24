@@ -10,7 +10,7 @@ import {reduceTotal} from '../../helpers/jsHelpers'
 import { TiffFields } from '../helpers/TiffFields'
 import { getGeoKeyDataFields, getGeoKeyData } from '../helpers/GeoTiff'
 import { getEnumKeyFromFieldNameAndValue } from '../helpers/Enums'
-import { TiffProcessorMessageType } from '../TiffProcessorMessageType'
+import { TiffProcessorMessageType } from './TiffProcessorMessageType'
 import { TiffType } from './TiffType'
 
 class TiffHeaderReader {

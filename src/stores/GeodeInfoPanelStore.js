@@ -65,7 +65,7 @@ const getStructure = (fields) => {
   if (tileByteCounts) {
     return "Tiled"
   } else if (stripOffsets) {
-    return "Non-tiled"
+    return "Strip"
   }
   return null
 }
@@ -90,9 +90,9 @@ const parseInfo = (currentBandIndex, rawData, pixelInfo, set) => {
     resolution,
     format,
     structure,
-    minValue: pixelInfo ? pixelInfo.minValue : null,
-    maxValue: pixelInfo ? pixelInfo.maxValue : null,
-    meanValue: pixelInfo ? pixelInfo.meanValue : null,
+    minValue: pixelInfo ? pixelInfo.min : null,
+    maxValue: pixelInfo ? pixelInfo.max : null,
+    meanValue: pixelInfo ? pixelInfo.mean : null,
   })
 }
 

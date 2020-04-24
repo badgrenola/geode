@@ -1,7 +1,7 @@
 import { get } from 'svelte/store'
 import { GeodeStore } from '../stores/GeodeStore.js'
 import { GeodeProcessorState } from './GeodeProcessorState'
-import { TiffProcessorMessageType } from './TiffProcessorMessageType'
+import { TiffProcessorMessageType } from './TiffReader/TiffProcessorMessageType'
 import { GeodeProcessorMessageType } from './GeodeProcessorMessageType'
 import GeodeWW from 'web-worker:./GeodeWW.js'
 
@@ -23,7 +23,7 @@ geodeWorker.onmessage = function(e) {
       //TODO : Handle error
       break;
     case TiffProcessorMessageType.HEADER_LOADED:
-      console.log("GeodeProcessor : WebWorker has finished loading the header")
+      console.log("GeodeProcessor : TiffReader has finished loading the header")
       GeodeStore.setRawData(message.data)
       GeodeStore.setProcessorState(GeodeProcessorState.PIXEL_LOADING)
 
@@ -33,8 +33,12 @@ geodeWorker.onmessage = function(e) {
       })
 
       break;
+    case TiffProcessorMessageType.PIXEL_INFO_LOADED:
+      console.log("GeodeProcess : TiffReader has finished calculating the pixel info")
+      GeodeStore.setPixelInfo(message.data)
+      break;
     default: 
-      console.error("Unknown message received from WebWorker")
+      console.error("Unknown message received from TiffReader")
       console.error(message)
   }
 }
