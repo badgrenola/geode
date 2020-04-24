@@ -1,4 +1,4 @@
-import { TiffReader } from './TiffReader'
+import { TiffReader } from './TiffReader/TiffReader'
 import { GeodeProcessorMessageType } from './GeodeProcessorMessageType'
 
 //Define simple onLoad/onError callbacks for the TiffReader
