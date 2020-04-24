@@ -19,7 +19,7 @@ geodeWorker.onmessage = function(e) {
   switch (message.type) {
     case TiffProcessorMessageType.ERROR:
       console.error("GeodeProcessor : Received an error message")
-      console.log(message.error)
+      console.error(message.error)
       //TODO : Handle error
       break;
     case TiffProcessorMessageType.HEADER_LOADED:
