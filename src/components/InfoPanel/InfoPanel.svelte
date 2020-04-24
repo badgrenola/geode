@@ -66,7 +66,7 @@
     
     <div class="flex flex-col">
       <span class="font-semibold text-teal-800">Min Value</span>
-      {#if $GeodeInfoPanelStore.minValue}
+      {#if $GeodeInfoPanelStore.minValue !== null}
         <span class="font-light text-gray-700" title={$GeodeInfoPanelStore.minValue}>{roundToDP($GeodeInfoPanelStore.minValue, 4)}</span>
       {:else}
         <Spinner size={spinnerSize} />
@@ -74,7 +74,7 @@
     </div>
     <div class="flex flex-col">
       <span class="font-semibold text-teal-800">Max Value</span>
-      {#if $GeodeInfoPanelStore.maxValue}
+      {#if $GeodeInfoPanelStore.maxValue !== null}
         <span class="font-light text-gray-700" title={$GeodeInfoPanelStore.maxValue}>{roundToDP($GeodeInfoPanelStore.maxValue, 4)}</span>
       {:else}
         <Spinner size={spinnerSize} />
@@ -82,7 +82,7 @@
     </div>
     <div class="flex flex-col">
       <span class="font-semibold text-teal-800">Mean Value</span>
-      {#if $GeodeInfoPanelStore.meanValue}
+      {#if $GeodeInfoPanelStore.meanValue !== null}
         <span class="font-light text-gray-700" title={$GeodeInfoPanelStore.meanValue}>{roundToDP($GeodeInfoPanelStore.meanValue, 4)}</span>
       {:else}
         <Spinner size={spinnerSize} />
