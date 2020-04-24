@@ -1,5 +1,6 @@
 <script>
   import { GeodeInfoPanelStore } from '../../stores/GeodeInfoPanelStore'
+  import { roundToDP } from '../../helpers/jsHelpers'
   import Spinner from '../Spinner.svelte'
 
   let spinnerSize = 3
@@ -66,7 +67,7 @@
     <div class="flex flex-col">
       <span class="font-semibold text-teal-800">Min Value</span>
       {#if $GeodeInfoPanelStore.minValue}
-        <span class="font-light text-gray-700">{$GeodeInfoPanelStore.minValue}</span>
+        <span class="font-light text-gray-700" title={$GeodeInfoPanelStore.minValue}>{roundToDP($GeodeInfoPanelStore.minValue, 4)}</span>
       {:else}
         <Spinner size={spinnerSize} />
       {/if}
@@ -74,7 +75,7 @@
     <div class="flex flex-col">
       <span class="font-semibold text-teal-800">Max Value</span>
       {#if $GeodeInfoPanelStore.maxValue}
-        <span class="font-light text-gray-700">{$GeodeInfoPanelStore.maxValue}</span>
+        <span class="font-light text-gray-700" title={$GeodeInfoPanelStore.maxValue}>{roundToDP($GeodeInfoPanelStore.maxValue, 4)}</span>
       {:else}
         <Spinner size={spinnerSize} />
       {/if}
@@ -82,7 +83,7 @@
     <div class="flex flex-col">
       <span class="font-semibold text-teal-800">Mean Value</span>
       {#if $GeodeInfoPanelStore.meanValue}
-        <span class="font-light text-gray-700">{$GeodeInfoPanelStore.meanValue}</span>
+        <span class="font-light text-gray-700" title={$GeodeInfoPanelStore.meanValue}>{roundToDP($GeodeInfoPanelStore.meanValue, 4)}</span>
       {:else}
         <Spinner size={spinnerSize} />
       {/if}
