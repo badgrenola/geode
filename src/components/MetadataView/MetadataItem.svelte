@@ -18,7 +18,7 @@
     <div
       class="w-full flex flex-shrink-0 justify-between h-10 items-center"
       on:click={fieldClicked}>
-      <div class="flex items-center">
+      <div class="flex items-center" title="Tag ID : {field.id}">
         <span
           class="w-8 flex items-center justify-center {field.expandable ? 'opacity-100' : 'opacity-25'}">
           {#if isExpanded}▼{:else}▶{/if}

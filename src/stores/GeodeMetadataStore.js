@@ -166,6 +166,7 @@ const processField = (field) => {
   }
 
   return {
+    id: field.id,
     name,
     data: field.data,
     prettyData,
