@@ -35,6 +35,20 @@ function getDataTypeFromID(id) {
   return null
 }
 
+function valueIsValidForDataType(value, dataType, noVal) {
+  // https://en.wikipedia.org/wiki/Half-precision_floating-point_format
+  // "Integers above 65519 are rounded to "infinity" if using round-to-even, or above 65535 if using round-to-zero, or above 65504 if using round-to-infinity."
+    
+  switch (dataType.id) {
+    case 3: //SHORT
+      return value !== noVal && value <= 65519
+    case 11: //FLOAT
+      return value.toPrecision(4) !== noVal && value <= ((2**32)/2)-1
+    default: 
+      return false
+  }
+}
+
 
 // BYTE ARRAY FUNCTION
 async function getUInt8ByteArray(file, offset, length) {
