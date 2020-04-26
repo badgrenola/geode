@@ -27,6 +27,7 @@ const geodeInfoPanelDefaults = {
   minValue: null,
   maxValue: null,
   meanValue: null,
+  statsAreApproximate: null,
 }
 
 //Get the resolution string from the ImageWidth/ImageLength fields
@@ -93,6 +94,7 @@ const parseInfo = (currentBandIndex, rawData, pixelInfo, set) => {
     minValue: pixelInfo ? pixelInfo.min : null,
     maxValue: pixelInfo ? pixelInfo.max : null,
     meanValue: pixelInfo ? pixelInfo.mean : null,
+    statsAreApproximate: pixelInfo ? pixelInfo.isApproximate : null,
   })
 }
 
