@@ -78,12 +78,6 @@ class TiffPixelReader {
       return
     }
 
-    //Get the data type of the byte info
-    let dataType = DataType.Short
-    if (this.meta.bitsPerSample === 32) {
-      dataType = DataType.Float
-    }
-
     //Store min/max for the entire file
     this.min = 999999
     this.max = -999999
@@ -98,12 +92,12 @@ class TiffPixelReader {
     let pixelLoopError = await this.pixelLoop(
       this.meta.stripOffsets || this.meta.tileOffsets, 
       this.meta.stripByteCounts || this.meta.tileByteCounts,
-      dataType, 
+      this.meta.dataType, 
       this.proxyLevel, 
       (results) => {
 
       //For each row, get the min and max and update our value for the entire file
-      let validResults = results.filter(v => valueIsValidForDataType(v, dataType, this.meta.noVal))
+      let validResults = results.filter(v => valueIsValidForDataType(v, this.meta.dataType, this.meta.noVal))
       if (validResults.length) {
         //Update the min/max
         let resultsMin = arrMin(validResults)
@@ -175,6 +169,12 @@ class TiffPixelReader {
     //Try to get the no data value
     const noData = this.tiffReader.getNoData()
 
+    //Get the data type of the byte info
+    let dataType = DataType.Short
+    if (bitsPerSample === 32) {
+      dataType = DataType.Float
+    }
+
     //Store all of the data in a single object
     this.meta = {
       width,
@@ -187,7 +187,8 @@ class TiffPixelReader {
       tileOffsets, 
       tileByteCounts, 
       tileWidth, 
-      tileHeight
+      tileHeight,
+      dataType
     }
 
   }
