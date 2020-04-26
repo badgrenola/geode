@@ -6,6 +6,34 @@ import { GeodeProcessorMessageType } from './GeodeProcessorMessageType'
 import GeodeWW from 'web-worker:./GeodeWW.js'
 
 
+//Test save func
+const a = document.createElement("a");
+document.body.appendChild(a);
+a.style = "display: none";
+
+const downloadBlob = (blob, fileName) => {
+
+  //Create a hidden link in the document
+  const link = document.createElement("a")
+  link.style = "display: none"
+  document.body.appendChild(link)
+
+  //Create a URL from the blob
+  const blobURL = window.URL.createObjectURL(blob)
+
+  //Add to the hidden link element and click
+  link.href = blobURL
+  link.download = fileName
+  link.click()
+
+  //Immediately revoke the URL
+  window.URL.revokeObjectURL(blobURL)
+
+  //Immediately remove the link
+  document.body.removeChild(link)
+}
+
+
 //Create the webworker
 const geodeWorker = new GeodeWW()
 
@@ -34,9 +62,22 @@ geodeWorker.onmessage = function(e) {
 
       break;
     case TiffProcessorMessageType.PIXEL_INFO_LOADED:
-      console.log("GeodeProcess : TiffReader has finished calculating the pixel info")
+      console.log("GeodeProcessor : TiffReader has finished calculating the pixel info")
       GeodeStore.setPixelInfo(message.data)
+
+      //Tell the webworker to start processing the pixel data
+      geodeWorker.postMessage({
+        type:GeodeProcessorMessageType.MAKE_IMG
+      })
+
       break;
+
+    case TiffProcessorMessageType.TEST_IMG_DOWNLOAD:
+      console.log("GeodeProcessor : TiffReader has sent a test blob for download")
+      console.log(geodeWorker.reader)
+      downloadBlob(message.data, "test.IMG")
+      break;
+
     default: 
       console.error("Unknown message received from TiffReader")
       console.error(message)
