@@ -66,10 +66,12 @@
 
     
     <div class="flex flex-col">
-      <span class="font-semibold text-teal-800">Min Value</span>
-      {#if $GeodeInfoPanelStore.minValue !== null}
+      <span class="font-semibold text-teal-800">
+        {$GeodeInfoPanelStore.statsAreApproximate ? "~" : ""}
+        Min Value
+      </span>
+      {#if $GeodeInfoPanelStore.minValue !== undefined}
         <span class="font-light text-gray-700" title={$GeodeInfoPanelStore.minValue}>
-          {$GeodeInfoPanelStore.statsAreApproximate ? "~" : ""}
           {roundToDP($GeodeInfoPanelStore.minValue, 4)}
         </span>
       {:else}
@@ -77,10 +79,12 @@
       {/if}
     </div>
     <div class="flex flex-col">
-      <span class="font-semibold text-teal-800">Max Value</span>
-      {#if $GeodeInfoPanelStore.maxValue !== null}
+      <span class="font-semibold text-teal-800">
+        {$GeodeInfoPanelStore.statsAreApproximate ? "~" : ""}
+        Max Value
+      </span>
+      {#if $GeodeInfoPanelStore.maxValue !== undefined}
         <span class="font-light text-gray-700" title={$GeodeInfoPanelStore.maxValue}>
-          {$GeodeInfoPanelStore.statsAreApproximate ? "~" : ""}
           {roundToDP($GeodeInfoPanelStore.maxValue, 4)}
         </span>
       {:else}
@@ -88,10 +92,12 @@
       {/if}
     </div>
     <div class="flex flex-col">
-      <span class="font-semibold text-teal-800">Mean Value</span>
-      {#if $GeodeInfoPanelStore.meanValue !== null}
+      <span class="font-semibold text-teal-800">
+        {$GeodeInfoPanelStore.statsAreApproximate ? "~ " : ""}
+        Mean Value
+      </span>
+      {#if $GeodeInfoPanelStore.meanValue !== undefined}
         <span class="font-light text-gray-700" title={$GeodeInfoPanelStore.meanValue}>
-          {$GeodeInfoPanelStore.statsAreApproximate ? "~" : ""}
           {roundToDP($GeodeInfoPanelStore.meanValue, 4)}
         </span>
       {:else}
