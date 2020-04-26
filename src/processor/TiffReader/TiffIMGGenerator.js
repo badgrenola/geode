@@ -48,7 +48,8 @@ class TiffIMGGenerator {
       outputDataType.byteCount[0]
 
     //Calculate the full DV size, by proxying the above length, and adding the header
-    const finalDVLength = (unproxiedDVLength/proxySq) + this.headerByteCount
+    const finalDVLength = Math.floor(unproxiedDVLength/proxySq) + this.headerByteCount
+
     
     //Create a new dataview of the correct length
     const dv = new DataView(new ArrayBuffer(finalDVLength))
