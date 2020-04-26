@@ -24,8 +24,33 @@ class TiffPixelReader {
 
   //Get Min/Max/Mean Pixel info
   async getPixelInfo() {
-    console.log("System byte order is :", this.tiffReader.sysByteOrder)
-    console.log("File byte order is : ", this.tiffReader.header.byteOrder)
+
+    //Check if the values already exist in the metadata
+    const existingMin = this.tiffReader.getGDALMetaFloat('MINIMUM')
+    const existingMax = this.tiffReader.getGDALMetaFloat('MAXIMUM')
+    const existingMean = this.tiffReader.getGDALMetaFloat('MEAN')
+    if (existingMin && existingMax && existingMean) {
+      //There ARE existing values
+      console.log("Found existing Min/Max/Mean values in the GDAL_METADATA")
+
+      //Store them
+      this.min = existingMin
+      this.max = existingMax
+      this.mean = existingMean
+
+      //Send the results back to the processor
+      this.tiffReader.sendMessage(TiffProcessorMessageType.PIXEL_INFO_LOADED, {
+        min: this.min,
+        max: this.max,
+        mean: this.mean
+      })
+
+      return
+    }
+
+    console.log("Calculating Min/Max/Mean values")
+    console.debug("System byte order is :", this.tiffReader.sysByteOrder)
+    console.debug("File byte order is : ", this.tiffReader.header.byteOrder)
 
     if (this.tiffReader.sysByteOrder !== this.tiffReader.header.byteOrder) {
       this.tiffReader.sendMessage(TiffProcessorMessageType.ERROR, null, "System Byte Order doesn't match File Byte Order")
@@ -173,6 +198,7 @@ class TiffPixelReader {
       const byteOffset = offsets[i]
       const byteCount = counts[i]
 
+      //TODO : If file/sys endian-ness is the same, we can bypass the Dataview entirely. Also in the header 
       //Get the strip data as floats
       //TODO : Cleanup the imports for these
       // let floatArray = await getFloat32ByteArray(this.tiffReader.file, byteOffset, byteCount);

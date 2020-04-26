@@ -78,6 +78,14 @@ class TiffReader {
   getMapScale() { return this.getFieldData(33550) }
   getCompression() { return this.getFieldData(259) }
 
+  getGDALMetadata() { return this.getFieldData(42112) }
+  getGDALMetaFloat(key) { 
+    const gdalMeta = this.getGDALMetadata()
+    if (!gdalMeta) { return null }
+    const matches = gdalMeta.match(new RegExp(`${key}[^>]+>([^<]+)`))
+    if (matches["1"]) { return parseFloat(matches["1"])}
+  }
+
   getMin() { return this.pixelReader.min }
   getMax() { return this.pixelReader.max }
   getMean() { return this.pixelReader.mean }
