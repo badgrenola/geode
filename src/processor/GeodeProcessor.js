@@ -51,7 +51,7 @@ geodeWorker.onmessage = function(e) {
       //TODO : Handle error
       break;
     case TiffProcessorMessageType.HEADER_LOADED:
-      console.log("GeodeProcessor : TiffReader has finished loading the header")
+      console.debug("GeodeProcessor : TiffReader has finished loading the header")
       GeodeStore.setRawData(message.data)
       GeodeStore.setProcessorState(GeodeProcessorState.PIXEL_LOADING)
 
@@ -62,7 +62,7 @@ geodeWorker.onmessage = function(e) {
 
       break;
     case TiffProcessorMessageType.PIXEL_STATS_LOADED:
-      console.log("GeodeProcessor : TiffReader has finished calculating the pixel info")
+      console.debug("GeodeProcessor : TiffReader has finished calculating the pixel info")
       GeodeStore.setPixelInfo(message.data)
 
       //Tell the webworker to start processing the pixel data
@@ -80,8 +80,8 @@ geodeWorker.onmessage = function(e) {
       break;
 
     case TiffProcessorMessageType.TEST_IMG_DOWNLOAD:
-      console.log("GeodeProcessor : TiffReader has sent a test blob for download")
-      console.log(geodeWorker.reader)
+      console.debug("GeodeProcessor : TiffReader has sent a test blob for download")
+      console.debug(geodeWorker.reader)
       downloadBlob(message.data, "test.IMG")
       break;
 
@@ -95,7 +95,7 @@ geodeWorker.onmessage = function(e) {
 const onNewFileSelected = (file) => {
   //If we're already loading, tell the processor to stop 
   if (get(GeodeStore).processorState !== GeodeProcessorState.IDLE) {
-    console.log("GeodeProcessor: Already processing a file. Cleaning up...")
+    console.debug("GeodeProcessor: Already processing a file. Cleaning up...")
     stopProcessingAndProcessNewFile(file)
     return
   }
@@ -110,7 +110,7 @@ const onNewFileSelected = (file) => {
   GeodeStore.setProcessorState(GeodeProcessorState.HEADER_LOAD)
 
   //Trigger the processing start
-  console.log("GeodeProcessor: Starting processing")
+  console.debug("GeodeProcessor: Starting processing")
   geodeWorker.postMessage({
     type: GeodeProcessorMessageType.LOAD_HEADER,
     file
@@ -125,7 +125,7 @@ const stopProcessingAndProcessNewFile = (newFile) => {
 
     //Set the loading state
     GeodeStore.setProcessorState(GeodeProcessorState.IDLE)
-    console.log('Processing stopped')
+    console.debug('Processing stopped')
     onNewFileSelected(newFile)
   }, 500)
 }

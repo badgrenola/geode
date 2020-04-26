@@ -77,6 +77,7 @@ class TiffReader {
   getNoData() { return this.getFieldData(42113) }
   getMapScale() { return this.getFieldData(33550) }
   getCompression() { return this.getFieldData(259) }
+  getPhotometricInterpretation() { return this.getFieldData(262) }
 
   getGDALMetadata() { return this.getFieldData(42112) }
   getGDALMetaFloat(key) { 

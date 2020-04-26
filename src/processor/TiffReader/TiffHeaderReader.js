@@ -21,7 +21,7 @@ class TiffHeaderReader {
   }
 
   async readHeader(file) {
-    console.log('TiffReader : Starting to Read File Header')
+    console.debug('TiffReader : Starting to Read File Header')
 
     //Reset any state vars
     this.tiffReader.reset()
@@ -57,7 +57,7 @@ class TiffHeaderReader {
     this.determineTiffType()
 
     //Return the header and ifd info
-    console.log('TiffReader : Finished Reading File Header')
+    console.debug('TiffReader : Finished Reading File Header')
     this.tiffReader.sendMessage(
       TiffProcessorMessageType.HEADER_LOADED,
       {

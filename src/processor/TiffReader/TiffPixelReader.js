@@ -31,7 +31,7 @@ class TiffPixelReader {
     const existingMean = this.tiffReader.getGDALMetaFloat('MEAN')
     if (existingMin && existingMax && existingMean) {
       //There ARE existing values
-      console.log("Found existing Min/Max/Mean values in the GDAL_METADATA")
+      console.debug("Found existing Min/Max/Mean values in the GDAL_METADATA")
 
       //Store them
       this.min = existingMin
@@ -48,7 +48,7 @@ class TiffPixelReader {
       return
     }
 
-    console.log("Calculating Min/Max/Mean values")
+    console.debug("Calculating Min/Max/Mean values")
     console.debug("System byte order is :", this.tiffReader.sysByteOrder)
     console.debug("File byte order is : ", this.tiffReader.header.byteOrder)
 
@@ -61,6 +61,13 @@ class TiffPixelReader {
     const compression = this.tiffReader.getCompression()
     if (compression !== Enums.Compression.NONE) {
       this.tiffReader.sendMessage(TiffProcessorMessageType.PIXEL_STATS_LOAD_ERROR, null, "Compressed files not currently supported")
+      return
+    }
+
+    //Check for RGB files
+    const rgbCheck = this.tiffReader.getPhotometricInterpretation()
+    if (rgbCheck !== Enums.PhotometricInterpretation.MINISBLACK) {
+      this.tiffReader.sendMessage(TiffProcessorMessageType.PIXEL_STATS_LOAD_ERROR, null, "RGB files not currently supported")
       return
     }
 
@@ -85,7 +92,7 @@ class TiffPixelReader {
     let averages = []
 
     //Start a timer
-    console.time(`Proxy level ${this.proxyLevel} pixel read complete`)
+    console.time(`Pixel Stats Calculation Completed @P${this.proxyLevel}`)
 
     //Start the pixel loop
     let pixelLoopError = await this.pixelLoop(
@@ -119,7 +126,7 @@ class TiffPixelReader {
     this.mean = arrAvg(averages)
 
     //End the timer
-    console.timeEnd(`Proxy level ${this.proxyLevel} pixel read complete`)
+    console.timeEnd(`Pixel Stats Calculation Completed @P${this.proxyLevel}`)
 
     //Send the results back to the processor
     this.tiffReader.sendMessage(TiffProcessorMessageType.PIXEL_STATS_LOADED, {
