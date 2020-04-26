@@ -1,5 +1,5 @@
 import { TiffProcessorMessageType } from './TiffProcessorMessageType'
-import { ByteOrder, DataType } from '../helpers/Bytes'
+import { ByteOrder, DataType, valueIsValidForDataType } from '../helpers/Bytes'
 
 class TiffIMGGenerator {
 
@@ -9,10 +9,20 @@ class TiffIMGGenerator {
 
     //Store the number of bytes to use for the header
     this.headerByteCount = 13680
+
+    //Store a separate proxy level for IMG Generation
+    this.imgProxyLevel = 8
   }
 
   async constructIMG() {
     console.log("Constructing IMG")
+
+    // Get the meta
+    if (!this.tiffReader.pixelReader.meta) {
+      //We've already send the error so just return
+      this.tiffReader.sendMessage(TiffProcessorMessageType.ERROR, null, "PixelReader Meta data not available. Cannot create IMG file.")
+      return 
+    }
 
     //Get the label
     let label = this.makePDSLabel()
@@ -22,49 +32,25 @@ class TiffIMGGenerator {
     }
     console.log(label)
 
-
-    return
-
     //Ensure that the label is headerByteCount long
     label = label.padEnd(this.headerByteCount)
 
-    //Get the required info for pixel looping
-    //TODO : Refactor this out and split to strip vs tile
-    let width = this.tiffReader.getWidth()
-    let height = this.tiffReader.getHeight()
-    let offsets = this.tiffReader.getStripOffsets()
-    let counts = this.tiffReader.getStripByteCounts()
-    let bitsPerSample = this.tiffReader.getBitsPerSample()
-    const noData = this.tiffReader.getNoData()
-    if (typeof bitsPerSample === typeof []) { bitsPerSample = bitsPerSample[0] }
-
-    if (!width || !height || !bitsPerSample || !offsets || !counts) { 
-      this.tiffReader.sendMessage(TiffProcessorMessageType.ERROR, null, "No Strip Offsets/Byte Counts found when creating IMG")
-      return
-    }
-
     //Set the proxy level
-    const proxyLevel = 1
-    const proxySq = proxyLevel * proxyLevel
-
-    
-    //Get the data type of the image sbyte info
-    let imageDataType = DataType.Short
-    if (bitsPerSample === 32) {
-      imageDataType = DataType.Float
-    }
-
-    let noVal = parseFloat(noData.data)
-    const maxForDataType = imageDataType === DataType.Short ? (2**16)-1 : ((2**32)/2)-1
-    const isValid = num => num !== noVal && num <= (maxForDataType - 50) // THere seems to be a threshold around this max value. TODO.
+    const proxySq = this.imgProxyLevel * this.imgProxyLevel
 
     //Set the data type of the output data
     const outputDataType = DataType.Float
 
-    //Create a data view of the correct length, from the array buffer
-    const unproxiedDVLength = width * height * outputDataType.byteCount[0] // + this.headerByteCount
+    //Calculate the size of the data view required for the non-header data
+    const unproxiedDVLength = 
+      this.tiffReader.pixelReader.meta.width * 
+      this.tiffReader.pixelReader.meta.height * 
+      outputDataType.byteCount[0]
+
+    //Calculate the full DV size, by proxying the above length, and adding the header
     const finalDVLength = (unproxiedDVLength/proxySq) + this.headerByteCount
-    // console.log(unproxiedDVLength, finalDVLength)
+    
+    //Create a new dataview of the correct length
     const dv = new DataView(new ArrayBuffer(finalDVLength))
 
     //Get the label as a UInt8 array
@@ -77,35 +63,46 @@ class TiffIMGGenerator {
 
     //Loop through all the pixels at full resolution, get each value as ??? and add to the buffer
     let dataViewByteOffset = this.headerByteCount;
-    await this.tiffReader.pixelReader.pixelLoop(offsets, counts, imageDataType, proxyLevel, (pixelVals) => {
-      //For every row, add the float values to the DataView
+    await this.tiffReader.pixelReader.pixelLoop(
+      this.tiffReader.pixelReader.meta.stripOffsets || this.tiffReader.pixelReader.meta.tileOffsets, 
+      this.tiffReader.pixelReader.meta.stripByteCounts || this.tiffReader.pixelReader.meta.tileByteCounts,
+      this.tiffReader.pixelReader.meta.dataType, 
+      this.imgProxyLevel, 
+      (pixelVals) => {
+
+      //For each row, get the min and max and update our value for the entire file
+      // let validResults = results.filter(v => valueIsValidForDataType(v, this.meta.dataType, this.meta.noVal))
+
       pixelVals.forEach(val => {
-        if (isValid(val)) {
+        if (valueIsValidForDataType(val, this.tiffReader.pixelReader.meta.dataType, this.tiffReader.pixelReader.meta.noVal)) {
           dv.setFloat32(dataViewByteOffset, val, this.tiffReader.sysByteOrder === ByteOrder.LittleEndian);
-          dataViewByteOffset +=  outputDataType.byteCount[0]
         }
+        dataViewByteOffset +=  outputDataType.byteCount[0]
       })
+
     })
 
     //Send the Dataview as a blob to the main thread for download
-    this.tiffReader.sendMessage(TiffProcessorMessageType.TEST_IMG_DOWNLOAD, new Blob([dv]))
+    this.tiffReader.sendMessage(TiffProcessorMessageType.TEST_IMG_DOWNLOAD, {
+      blob: new Blob([dv]),
+      fileName: this.tiffReader.header.fileName
+    })
   }
 
   makePDSLabel() {
-    //Get the required fields
-    const filename = this.tiffReader.getFilename()
-    const width = this.tiffReader.getWidth()
-    const height = this.tiffReader.getHeight()
-    const min = this.tiffReader.getMin()
-    const max = this.tiffReader.getMax()
-    let mapScale = this.tiffReader.getMapScale()
-    if (!width || !height || min === null || max === null || !mapScale) { return null }
+    //Get the map scale
+    let mapScale = this.tiffReader.getMapScale() || 1
 
     //Format if necessary
     if (typeof mapScale === typeof []) { mapScale = mapScale[0] }
 
     //TODO Get the mapscale key
     const mapScaleKey = "<DEGREE/PIXEL>"
+
+    // Adjust the width/height/scale based on the proxy
+    const labelWidth = Math.floor(this.tiffReader.pixelReader.meta.width / this.imgProxyLevel)
+    const labelHeight = Math.floor(this.tiffReader.pixelReader.meta.height / this.imgProxyLevel)
+    const labelMapScale = mapScale * this.imgProxyLevel
 
     //Set up the PDS label
     let labelLines = []
@@ -115,7 +112,7 @@ class TiffIMGGenerator {
     labelLines.push('/* File format and length */')
     labelLines.push('RECORD_TYPE               = FIXED_LENGTH')
     labelLines.push(`RECORD_BYTES              = ${this.headerByteCount}`)
-    labelLines.push(`FILE_RECORDS              = ${height + 1}`)
+    labelLines.push(`FILE_RECORDS              = ${labelHeight + 1}`)
     labelLines.push('^IMAGE                    = 2')
     labelLines.push('')
 
@@ -123,15 +120,15 @@ class TiffIMGGenerator {
     labelLines.push('/* Identification Information */')
     labelLines.push('PRODUCER_FULL_NAME        = "MATT BREALEY"')
     labelLines.push('PRODUCER_ID               = "GEODE"')
-    labelLines.push(`PRODUCT_ID                = "${filename}"`)
+    labelLines.push(`PRODUCT_ID                = "${this.tiffReader.header.fileName}"`)
     labelLines.push('PRODUCT_VERSION_ID        = "1"')
     labelLines.push('SOFTWARE_NAME             = "Geode"')
     labelLines.push('')
 
     //Object
     labelLines.push('OBJECT = IMAGE')
-    labelLines.push(`  LINES            = ${height}`)
-    labelLines.push(`  LINE_SAMPLES     = ${width}`)
+    labelLines.push(`  LINES            = ${labelHeight}`)
+    labelLines.push(`  LINE_SAMPLES     = ${labelWidth}`)
     labelLines.push('  BANDS            = 1')
     labelLines.push('  OFFSET           = 0.0')
     labelLines.push('  SCALING_FACTOR   = 1.0')
@@ -139,14 +136,14 @@ class TiffIMGGenerator {
     labelLines.push(`  SAMPLE_BIT_MASK  = 2#${'1'.repeat(32 )}#`)
     labelLines.push('  SAMPLE_TYPE      = PC_REAL')
     labelLines.push('  MISSING_CONSTANT = 16#FF7FFFFB#')
-    labelLines.push(`  VALID_MINIMUM    = ${min}`)
-    labelLines.push(`  VALID_MAXIMUM    = ${max}`)
+    labelLines.push(`  VALID_MINIMUM    = ${this.tiffReader.pixelReader.meta.min}`)
+    labelLines.push(`  VALID_MAXIMUM    = ${this.tiffReader.pixelReader.meta.max}`)
     labelLines.push('END_OBJECT = IMAGE')
     labelLines.push('')
 
     //Projection
     labelLines.push('OBJECT = IMAGE_MAP_PROJECTION')
-    labelLines.push(`  MAP_SCALE                    = ${mapScale} ${mapScaleKey}`)
+    labelLines.push(`  MAP_SCALE                    = ${labelMapScale} ${mapScaleKey}`)
     labelLines.push('END_OBJECT = IMAGE_MAP_PROJECTION')
     labelLines.push('END')
 

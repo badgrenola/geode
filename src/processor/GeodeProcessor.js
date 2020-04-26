@@ -66,9 +66,9 @@ geodeWorker.onmessage = function(e) {
       GeodeStore.setPixelInfo(message.data)
 
       //Tell the webworker to start processing the pixel data
-      // geodeWorker.postMessage({
-      //   type:GeodeProcessorMessageType.MAKE_IMG
-      // })
+      geodeWorker.postMessage({
+        type:GeodeProcessorMessageType.MAKE_IMG
+      })
 
       break;
     case TiffProcessorMessageType.PIXEL_STATS_LOAD_ERROR:
@@ -82,7 +82,9 @@ geodeWorker.onmessage = function(e) {
     case TiffProcessorMessageType.TEST_IMG_DOWNLOAD:
       console.debug("GeodeProcessor : TiffReader has sent a test blob for download")
       console.debug(geodeWorker.reader)
-      downloadBlob(message.data, "test.IMG")
+      console.log(message.data.fileName)
+      //TODO - Clean up the name
+      downloadBlob(message.data.blob, message.data.fileName.replace(".tiff", ".IMG").replace(".TIFF", ".IMG").replace(".tif", ".IMG"))
       break;
 
     default: 
