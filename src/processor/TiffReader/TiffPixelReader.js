@@ -1,6 +1,8 @@
 import { TiffProcessorMessageType } from './TiffProcessorMessageType'
 import { TiffType } from './TiffType'
-import { DataType, getUInt8ByteArray, getDataArrayFromBytes } from '../helpers/Bytes'
+import { DataType, getUInt8ByteArray, getDataArrayFromBytes, getFloat32ByteArray, valueIsValidForDataType} from '../helpers/Bytes'
+import { Enums } from '../helpers/Enums'
+import { arrAvg, arrMin, arrMax } from '../../helpers/jsHelpers'
 
 class TiffPixelReader {
 
@@ -9,11 +11,19 @@ class TiffPixelReader {
     this.tiffReader = tiffReader
 
     //Store a default proxy level
-    this.proxyLevel = 4
+    this.proxyLevel = 8
+
+    //Store the reader metadata
+    this.meta = null
+
+    //Store the saved values
+    this.min = null
+    this.max = null
+    this.mean = null
   }
 
-  //Pixel reading
-  async parsePixels() {
+  //Get Min/Max/Mean Pixel info
+  async getPixelInfo() {
     console.log("System byte order is :", this.tiffReader.sysByteOrder)
     console.log("File byte order is : ", this.tiffReader.header.byteOrder)
 
@@ -22,79 +32,157 @@ class TiffPixelReader {
       return
     }
 
-    if (this.tiffReader.tiffType === TiffType.TILED) {
-      await this.parseTiledFile()
-    } else if (this.tiffReader.tiffType === TiffType.STRIPS) {
-      await this.parseStripFile()
-    } else {
-      this.tiffReader.sendMessage(TiffProcessorMessageType.ERROR, null, "File TiffType not set")
-      return
-    }
-  }
-
-  async parseTiledFile() {
-    this.tiffReader.sendMessage(TiffProcessorMessageType.ERROR, null, "Tiled Files not currently supported")
-  }
-
-  async parseStripFile() {
-
-    const fields = this.tiffReader.ifds[0].fields
-    const width = fields.find(field => field.id === 256)
-    const length = fields.find(field => field.id === 257)
-    const stripOffsets = fields.find(field => field.id === 273)
-    const stripByteCounts = fields.find(field => field.id === 279)
-    const samplesPerPixel = fields.find(field => field.id === 277)
-    const bitsPerSample = fields.find(field => field.id === 258)
-    const noData = fields.find(field => field.id === 42113)
-
-    if (!width || !length || !stripOffsets || !stripByteCounts || !samplesPerPixel || !bitsPerSample || !noData) {
-      this.tiffReader.sendMessage(TiffProcessorMessageType.ERROR, null, "Cannot find strip info")
+    //Check for compressed files
+    const compression = this.tiffReader.getCompression()
+    if (compression !== Enums.Compression.NONE) {
+      this.tiffReader.sendMessage(TiffProcessorMessageType.ERROR, null, "Compressed files not currently supported")
       return
     }
 
-    let noVal = parseFloat(noData.data)
-    const arrMin = arr => Math.min(...arr.filter(v => v !== noVal));
-    const arrMax = arr => Math.max(...arr.filter(v => v !== noVal));
-    const arrAvg = (arr) => (arr.reduce((a,b) => a + b, 0) / arr.length)
+    //Get the data needed for the pixel read
+    this.storeMetadataForPixelRead()
+    if (!this.meta) {
+      //We've already send the error so just return
+      return
+    }
 
-    let min = 999999
-    let max = -999999
-    let averages = []
-
-    console.time(`Proxy ${this.proxyLevel} pixel read`)
-
+    //Get the data type of the byte info
     let dataType = DataType.Short
-    if (bitsPerSample.data === 32) {
+    if (this.meta.bitsPerSample === 32) {
       dataType = DataType.Float
     }
 
-    //For each strip
-    for (var stripIndex = 0; stripIndex<length.data; stripIndex += this.proxyLevel) {
-      //Get the strip data as floats
-      //TODO : Figure out data type properly
-      let bytes = await getUInt8ByteArray(this.tiffReader.file, stripOffsets.data[stripIndex], stripByteCounts.data[stripIndex])
-      let results = getDataArrayFromBytes(bytes, dataType, this.tiffReader.header.byteOrder, this.proxyLevel)
+    //Store min/max for the entire file
+    this.min = 999999
+    this.max = -999999
 
-      let rowMin = arrMin(results)
-      let rowMax = arrMax(results)
-      if (isFinite(rowMin) && rowMin < min) { min = rowMin }
-      if (isFinite(rowMax) && rowMax > max) { max = rowMax }
+    //Store averages array - contains average value of each row
+    let averages = []
 
-      let validVals = results.filter(v => v !== noVal)
-      if (validVals.length) {
-        averages.push(arrAvg(validVals))
+    //Start a timer
+    console.time(`Proxy level ${this.proxyLevel} pixel read complete`)
+
+    //Start the pixel loop
+    let pixelLoopError = await this.pixelLoop(
+      this.meta.stripOffsets || this.meta.tileOffsets, 
+      this.meta.stripByteCounts || this.meta.tileByteCounts,
+      dataType, 
+      this.proxyLevel, 
+      (results) => {
+
+      //For each row, get the min and max and update our value for the entire file
+      let validResults = results.filter(v => valueIsValidForDataType(v, dataType, this.meta.noVal))
+      if (validResults.length) {
+        //Update the min/max
+        let resultsMin = arrMin(validResults)
+        let resultsMax = arrMax(validResults)
+        if (isFinite(resultsMin) && resultsMin < this.min) { this.min = resultsMin }
+        if (isFinite(resultsMax) && resultsMax > this.max) { this.max = resultsMax }
+
+        // Update the averages
+        averages.push(arrAvg(validResults))
+      }
+    })
+
+    //Check for a pixel loop error
+    if (pixelLoopError) {
+      this.tiffReader.sendMessage(TiffProcessorMessageType.ERROR, null, pixelLoopError)
+      return
+    }
+
+    //Now we have all row averages, find the overall average value
+    this.mean = arrAvg(averages)
+
+    //End the timer
+    console.timeEnd(`Proxy level ${this.proxyLevel} pixel read complete`)
+
+    //Send the results back to the processor
+    this.tiffReader.sendMessage(TiffProcessorMessageType.PIXEL_INFO_LOADED, {
+      min: this.min,
+      max: this.max,
+      mean: this.mean,
+      isApproximate: this.proxyLevel !== 1
+    })
+  }
+
+  storeMetadataForPixelRead() {
+    //Get the basic image info
+    const width = this.tiffReader.getWidth()
+    const height = this.tiffReader.getHeight()
+    const samplesPerPixel = this.tiffReader.getSamplesPerPixel()
+    const bitsPerSample = this.tiffReader.getBitsPerSample()
+    const noData = this.tiffReader.getNoData()
+
+    //Check we have all the basic infor required
+    if (!width || !height || !samplesPerPixel || !bitsPerSample || !noData ) {
+      this.tiffReader.sendMessage(TiffProcessorMessageType.ERROR, null, "Cannot find basic structure info")
+      return
+    }
+
+    //Get the structure info
+    let stripOffsets, stripByteCounts, tileOffsets, tileByteCounts, tileWidth, tileHeight = null
+    stripOffsets = this.tiffReader.getStripOffsets()
+    stripByteCounts = this.tiffReader.getStripByteCounts()
+    tileOffsets = this.tiffReader.getTileOffsets()
+    tileByteCounts = this.tiffReader.getTileByteCounts()
+    tileWidth = this.tiffReader.getTileWidth()
+    tileHeight = this.tiffReader.getTileHeight()
+
+    //Check we have the values needed for the current type
+    if (this.tiffReader.tiffType === TiffType.TILED) {
+      if (!tileOffsets || !tileByteCounts || !tileWidth || !tileHeight) { 
+        this.tiffReader.sendMessage(TiffProcessorMessageType.ERROR, null, "Cannot find tile info")
+        return
+      }
+    } else if (this.tiffReader.tiffType === TiffType.STRIPS) {
+      if (!stripOffsets || !stripByteCounts) {
+        this.tiffReader.sendMessage(TiffProcessorMessageType.ERROR, null, "Cannot find strip info")
+        return
       }
     }
 
-    let mean = arrAvg(averages)
+    //Store all of the data in a single object
+    this.meta = {
+      width,
+      height,
+      samplesPerPixel,
+      bitsPerSample,
+      noVal: parseFloat(noData).toPrecision(4),
+      stripOffsets, 
+      stripByteCounts, 
+      tileOffsets, 
+      tileByteCounts, 
+      tileWidth, 
+      tileHeight
+    }
 
-    console.timeEnd(`Proxy ${this.proxyLevel} pixel read`)
+  }
 
-    this.tiffReader.sendMessage(TiffProcessorMessageType.PIXEL_INFO_LOADED, {
-      min,
-      max,
-      mean
-    })
+  async pixelLoop(offsets, counts, dataType, proxyLevel, pixelsCallback) {
+
+    //We need the same number of offsets and counts
+    if (offsets.length !== counts.length) {
+      console.error("Offsets and Counts don't match")
+      return "Offsets and Counts don't match"
+    }
+
+    //Loop through 
+    for (var i = 0; i<counts.length; i += proxyLevel) {
+
+      //Get the byte offset and count
+      const byteOffset = offsets[i]
+      const byteCount = counts[i]
+
+      //Get the strip data as floats
+      //TODO : Cleanup the imports for these
+      // let floatArray = await getFloat32ByteArray(this.tiffReader.file, byteOffset, byteCount);
+      let bytes = await getUInt8ByteArray(this.tiffReader.file, byteOffset, byteCount)
+      let results = getDataArrayFromBytes(bytes, dataType, this.tiffReader.header.byteOrder, proxyLevel)
+
+      if (pixelsCallback) {
+        pixelsCallback(results)
+      }
+    }
   }
 
 }

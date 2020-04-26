@@ -61,6 +61,16 @@ async function getUInt8ByteArray(file, offset, length) {
   return new Uint8Array(buffer)
 }
 
+async function getFloat32ByteArray(file, offset, length) {
+  //Get an array buffer from the file
+  const buffer = await new Response(
+    file.slice(offset, offset + length)
+  ).arrayBuffer()
+
+  //Return as a UInt8 Array
+  return new Float32Array(buffer)
+}
+
 function getDataFromBytes(bytes, dataType, byteOrder) {
   //Check byteorder and return using DataView to set endianness appropriately
   switch (dataType.id) {
@@ -112,4 +122,4 @@ function getDataArrayFromBytes(bytes, dataType, byteOrder, skip) {
 
 }
 
-export { ByteOrder, DataType, getDataTypeFromID, getUInt8ByteArray, getDataFromBytes, getDataArrayFromBytes}
+export { ByteOrder, DataType, getDataTypeFromID, getUInt8ByteArray, getDataFromBytes, getDataArrayFromBytes, getFloat32ByteArray, valueIsValidForDataType}

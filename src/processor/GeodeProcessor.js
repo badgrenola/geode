@@ -66,9 +66,9 @@ geodeWorker.onmessage = function(e) {
       GeodeStore.setPixelInfo(message.data)
 
       //Tell the webworker to start processing the pixel data
-      geodeWorker.postMessage({
-        type:GeodeProcessorMessageType.MAKE_IMG
-      })
+      // geodeWorker.postMessage({
+      //   type:GeodeProcessorMessageType.MAKE_IMG
+      // })
 
       break;
 
