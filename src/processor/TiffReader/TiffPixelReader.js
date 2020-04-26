@@ -140,20 +140,29 @@ class TiffPixelReader {
     }
 
     //Get the structure info
-    let stripOffsets, stripByteCounts, tileOffsets, tileByteCounts, tileWidth, tileHeight = null
+    let stripOffsets, stripByteCounts, tileOffsets, tileByteCounts, tileWidth, tileHeight, tilesX, tilesY = null
     stripOffsets = this.tiffReader.getStripOffsets()
     stripByteCounts = this.tiffReader.getStripByteCounts()
     tileOffsets = this.tiffReader.getTileOffsets()
     tileByteCounts = this.tiffReader.getTileByteCounts()
     tileWidth = this.tiffReader.getTileWidth()
     tileHeight = this.tiffReader.getTileHeight()
+    tilesX = tileWidth ? Math.floor((width + tileWidth - 1) / tileWidth) : null
+    tilesY = tileHeight ? Math.floor((height + tileHeight - 1) / tileHeight) : null
 
     //Check we have the values needed for the current type
     if (this.tiffReader.tiffType === TiffType.TILED) {
-      if (!tileOffsets || !tileByteCounts || !tileWidth || !tileHeight) { 
+
+      if (!tileOffsets || !tileByteCounts || !tileWidth || !tileHeight || !tilesX || !tilesY) { 
         this.tiffReader.sendMessage(TiffProcessorMessageType.PIXEL_STATS_LOAD_ERROR, null, "Cannot find tile info")
         return
       }
+
+      if ((tilesX * tilesY !== tileOffsets.length || tilesX * tilesY !== tileByteCounts.length) ) { 
+        this.tiffReader.sendMessage(TiffProcessorMessageType.PIXEL_STATS_LOAD_ERROR, null, "Incorrect offsets/byteCounts for given tiles")
+        return
+      }
+
     } else if (this.tiffReader.tiffType === TiffType.STRIPS) {
       if (!stripOffsets || !stripByteCounts) {
         this.tiffReader.sendMessage(TiffProcessorMessageType.PIXEL_STATS_LOAD_ERROR, null, "Cannot find strip info")
