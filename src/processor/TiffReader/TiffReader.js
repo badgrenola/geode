@@ -83,7 +83,8 @@ class TiffReader {
     const gdalMeta = this.getGDALMetadata()
     if (!gdalMeta) { return null }
     const matches = gdalMeta.match(new RegExp(`${key}[^>]+>([^<]+)`))
-    if (matches["1"]) { return parseFloat(matches["1"])}
+    if (matches && matches["1"]) { return parseFloat(matches["1"])}
+    return null
   }
 
   getMin() { return this.pixelReader.min }
