@@ -19,15 +19,15 @@ GeodeInfoPanelStore derives from rawHeader, contains :
 
 //Determine the defaults
 const geodeInfoPanelDefaults = {
-  fileName: null,
-  fileSize: null,
-  resolution: null,
-  format: null,
-  structure: null,
-  minValue: null,
-  maxValue: null,
-  meanValue: null,
-  statsAreApproximate: null,
+  fileName: undefined,
+  fileSize: undefined,
+  resolution: undefined,
+  format: undefined,
+  structure: undefined,
+  minValue: undefined,
+  maxValue: undefined,
+  meanValue: undefined,
+  statsAreApproximate: undefined,
 }
 
 //Get the resolution string from the ImageWidth/ImageLength fields
@@ -37,7 +37,7 @@ const getResolution = (fields) => {
   if (imageWidthField && imageHeightField) {
     return `${imageWidthField.data} x ${imageHeightField.data}`
   }
-  return null
+  return undefined
 }
 
 //Get the format string from the BitsPerSample/SamplesPerPixel fields
@@ -56,7 +56,7 @@ const getFormat = (fields) => {
     const bitCount = Array.isArray(bitsPerSample.data) ? bitsPerSample.data[0] : bitsPerSample.data
     return `${bitCount}-bit, ${colorDepthString}`
   }
-  return null
+  return undefined
 }
 
 //Get the structure string from either the TileByteCounts/StripOffsets fields
@@ -68,7 +68,7 @@ const getStructure = (fields) => {
   } else if (stripOffsets) {
     return "Strip"
   }
-  return null
+  return undefined
 }
 
 //Parse the information
@@ -91,10 +91,10 @@ const parseInfo = (currentBandIndex, rawData, pixelInfo, set) => {
     resolution,
     format,
     structure,
-    minValue: pixelInfo ? pixelInfo.min : null,
-    maxValue: pixelInfo ? pixelInfo.max : null,
-    meanValue: pixelInfo ? pixelInfo.mean : null,
-    statsAreApproximate: pixelInfo ? pixelInfo.isApproximate : null,
+    minValue: pixelInfo ? pixelInfo.min : undefined,
+    maxValue: pixelInfo ? pixelInfo.max : undefined,
+    meanValue: pixelInfo ? pixelInfo.mean : undefined,
+    statsAreApproximate: pixelInfo ? pixelInfo.isApproximate : undefined,
   })
 }
 

@@ -22,7 +22,7 @@ const createGeodeBandStore = () => {
 
       //Update the derived store based on current band index/geode store 
       const bandCount =
-        $GeodeStore.rawData !== null ? $GeodeStore.rawData.ifds.length : null
+        $GeodeStore.rawData !== undefined ? $GeodeStore.rawData.ifds.length : null
       set({
         bandCount,
         currentBandIndex: $CurrentBandIndex,
@@ -34,7 +34,7 @@ const createGeodeBandStore = () => {
   return {
     subscribe,
     setBandIndex: (newIndex) => {
-      CurrentBandIndex.update((n) => newIndex)
+      CurrentBandIndex.update(() => newIndex)
     },
   }
 }

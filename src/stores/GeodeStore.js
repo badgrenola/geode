@@ -12,10 +12,10 @@ GeodeStore contains :
 */
 
 const geodeStoreDefaults = {
-  file: null,
+  file: undefined,
   processorState: GeodeProcessorState.IDLE,
-  rawData: null,
-  pixelInfo: null,
+  rawData: undefined,
+  pixelInfo: undefined,
 }
 
 const createGeodeStore = () => {
@@ -38,8 +38,9 @@ const createGeodeStore = () => {
     setRawData: (data) => updateWrapper('rawData', data),
     setPixelInfo: (data) => updateWrapper('pixelInfo', data),
 		reset: () => set({
-      file: null,
-      rawData: null
+      file: undefined,
+      rawData: undefined,
+      pixelInfo: undefined,
     })
 	};
 }

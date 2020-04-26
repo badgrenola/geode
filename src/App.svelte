@@ -17,7 +17,7 @@
           onFileSelected={onNewFileSelected}
         >
       </DropZone>
-      {#if $GeodeStore.file === null}
+      {#if $GeodeStore.file === undefined}
         <StartScreen />
       {:else}
         <FileLayout />

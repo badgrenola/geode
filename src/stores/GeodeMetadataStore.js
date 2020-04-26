@@ -10,7 +10,7 @@ GeodeMetadataStore derives from rawHeader, contains :
 */
 
 const geodeMetadataStoreDefaults = {
-  ifdFields: null,
+  ifdFields: undefined,
 }
 
 //Process the rawData from the GeodeStore into data usable by the Metadata Panel
