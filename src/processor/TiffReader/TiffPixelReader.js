@@ -39,7 +39,7 @@ class TiffPixelReader {
       this.mean = existingMean
 
       //Send the results back to the processor
-      this.tiffReader.sendMessage(TiffProcessorMessageType.PIXEL_INFO_LOADED, {
+      this.tiffReader.sendMessage(TiffProcessorMessageType.PIXEL_STATS_LOADED, {
         min: this.min,
         max: this.max,
         mean: this.mean
@@ -53,14 +53,14 @@ class TiffPixelReader {
     console.debug("File byte order is : ", this.tiffReader.header.byteOrder)
 
     if (this.tiffReader.sysByteOrder !== this.tiffReader.header.byteOrder) {
-      this.tiffReader.sendMessage(TiffProcessorMessageType.ERROR, null, "System Byte Order doesn't match File Byte Order")
+      this.tiffReader.sendMessage(TiffProcessorMessageType.PIXEL_STATS_LOAD_ERROR, null, "System Byte Order doesn't match File Byte Order")
       return
     }
 
     //Check for compressed files
     const compression = this.tiffReader.getCompression()
     if (compression !== Enums.Compression.NONE) {
-      this.tiffReader.sendMessage(TiffProcessorMessageType.ERROR, null, "Compressed files not currently supported")
+      this.tiffReader.sendMessage(TiffProcessorMessageType.PIXEL_STATS_LOAD_ERROR, null, "Compressed files not currently supported")
       return
     }
 
@@ -122,7 +122,7 @@ class TiffPixelReader {
     console.timeEnd(`Proxy level ${this.proxyLevel} pixel read complete`)
 
     //Send the results back to the processor
-    this.tiffReader.sendMessage(TiffProcessorMessageType.PIXEL_INFO_LOADED, {
+    this.tiffReader.sendMessage(TiffProcessorMessageType.PIXEL_STATS_LOADED, {
       min: this.min,
       max: this.max,
       mean: this.mean,
@@ -139,7 +139,7 @@ class TiffPixelReader {
 
     //Check we have all the basic infor required
     if (!width || !height || !samplesPerPixel || !bitsPerSample ) {
-      this.tiffReader.sendMessage(TiffProcessorMessageType.ERROR, null, "Cannot find basic structure info")
+      this.tiffReader.sendMessage(TiffProcessorMessageType.PIXEL_STATS_LOAD_ERROR, null, "Cannot find basic structure info")
       return
     }
 
@@ -155,12 +155,12 @@ class TiffPixelReader {
     //Check we have the values needed for the current type
     if (this.tiffReader.tiffType === TiffType.TILED) {
       if (!tileOffsets || !tileByteCounts || !tileWidth || !tileHeight) { 
-        this.tiffReader.sendMessage(TiffProcessorMessageType.ERROR, null, "Cannot find tile info")
+        this.tiffReader.sendMessage(TiffProcessorMessageType.PIXEL_STATS_LOAD_ERROR, null, "Cannot find tile info")
         return
       }
     } else if (this.tiffReader.tiffType === TiffType.STRIPS) {
       if (!stripOffsets || !stripByteCounts) {
-        this.tiffReader.sendMessage(TiffProcessorMessageType.ERROR, null, "Cannot find strip info")
+        this.tiffReader.sendMessage(TiffProcessorMessageType.PIXEL_STATS_LOAD_ERROR, null, "Cannot find strip info")
         return
       }
     }

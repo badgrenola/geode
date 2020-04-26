@@ -24,7 +24,7 @@ onmessage = (e) => {
       //Start reading the header
       reader.readHeader(message.file)
       break;
-    case GeodeProcessorMessageType.LOAD_PIXELS:
+    case GeodeProcessorMessageType.GET_PIXEL_STATS:
       //Start loading the pixels
       reader.getPixelInfo()
       break;

@@ -57,11 +57,11 @@ geodeWorker.onmessage = function(e) {
 
       //Tell the webworker to start processing the pixel data
       geodeWorker.postMessage({
-        type:GeodeProcessorMessageType.LOAD_PIXELS
+        type:GeodeProcessorMessageType.GET_PIXEL_STATS
       })
 
       break;
-    case TiffProcessorMessageType.PIXEL_INFO_LOADED:
+    case TiffProcessorMessageType.PIXEL_STATS_LOADED:
       console.log("GeodeProcessor : TiffReader has finished calculating the pixel info")
       GeodeStore.setPixelInfo(message.data)
 
@@ -70,6 +70,13 @@ geodeWorker.onmessage = function(e) {
       //   type:GeodeProcessorMessageType.MAKE_IMG
       // })
 
+      break;
+    case TiffProcessorMessageType.PIXEL_STATS_LOAD_ERROR:
+      console.error("GeodeProcessor : TiffReader has encountered a problem loading the pixel info")
+      console.error(message.error)
+
+      //Set the pixel info to null
+      GeodeStore.setPixelInfo(null)
       break;
 
     case TiffProcessorMessageType.TEST_IMG_DOWNLOAD:
