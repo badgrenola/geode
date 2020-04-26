@@ -15,15 +15,17 @@ class TiffPixelReader {
 
     //Store the reader metadata
     this.meta = null
-
-    //Store the saved values
-    this.min = null
-    this.max = null
-    this.mean = null
   }
 
   //Get Min/Max/Mean Pixel info
   async getPixelInfo() {
+
+    //Get the data needed for the pixel read
+    this.storeMetadataForPixelRead()
+    if (!this.meta) {
+      //We've already send the error so just return
+      return
+    }
 
     //Check if the values already exist in the metadata
     const existingMin = this.tiffReader.getGDALMetaFloat('MINIMUM')
@@ -33,16 +35,16 @@ class TiffPixelReader {
       //There ARE existing values
       console.debug("Found existing Min/Max/Mean values in the GDAL_METADATA")
 
-      //Store them
-      this.min = existingMin
-      this.max = existingMax
-      this.mean = existingMean
+      //Store them in the meta
+      this.meta.min = existingMin
+      this.meta.max = existingMax
+      this.meta.mean = existingMean
 
       //Send the results back to the processor
       this.tiffReader.sendMessage(TiffProcessorMessageType.PIXEL_STATS_LOADED, {
-        min: this.min,
-        max: this.max,
-        mean: this.mean
+        min: this.meta.min,
+        max: this.meta.max,
+        mean: this.meta.mean
       })
 
       return
@@ -71,16 +73,9 @@ class TiffPixelReader {
       return
     }
 
-    //Get the data needed for the pixel read
-    this.storeMetadataForPixelRead()
-    if (!this.meta) {
-      //We've already send the error so just return
-      return
-    }
-
     //Store min/max for the entire file
-    this.min = 999999
-    this.max = -999999
+    this.meta.min = 999999
+    this.meta.max = -999999
 
     //Store averages array - contains average value of each row
     let averages = []
@@ -102,8 +97,8 @@ class TiffPixelReader {
         //Update the min/max
         let resultsMin = arrMin(validResults)
         let resultsMax = arrMax(validResults)
-        if (isFinite(resultsMin) && resultsMin < this.min) { this.min = resultsMin }
-        if (isFinite(resultsMax) && resultsMax > this.max) { this.max = resultsMax }
+        if (isFinite(resultsMin) && resultsMin < this.meta.min) { this.meta.min = resultsMin }
+        if (isFinite(resultsMax) && resultsMax > this.meta.max) { this.meta.max = resultsMax }
 
         // Update the averages
         averages.push(arrAvg(validResults))
@@ -117,16 +112,16 @@ class TiffPixelReader {
     }
 
     //Now we have all row averages, find the overall average value
-    this.mean = arrAvg(averages)
+    this.meta.mean = arrAvg(averages)
 
     //End the timer
     console.timeEnd(`Pixel Stats Calculation Completed @P${this.proxyLevel}`)
 
     //Send the results back to the processor
     this.tiffReader.sendMessage(TiffProcessorMessageType.PIXEL_STATS_LOADED, {
-      min: this.min,
-      max: this.max,
-      mean: this.mean,
+      min: this.meta.min,
+      max: this.meta.max,
+      mean: this.meta.mean,
       isApproximate: this.proxyLevel !== 1
     })
   }
