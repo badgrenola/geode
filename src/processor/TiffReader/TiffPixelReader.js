@@ -136,10 +136,9 @@ class TiffPixelReader {
     const height = this.tiffReader.getHeight()
     const samplesPerPixel = this.tiffReader.getSamplesPerPixel()
     const bitsPerSample = this.tiffReader.getBitsPerSample()
-    const noData = this.tiffReader.getNoData()
 
     //Check we have all the basic infor required
-    if (!width || !height || !samplesPerPixel || !bitsPerSample || !noData ) {
+    if (!width || !height || !samplesPerPixel || !bitsPerSample ) {
       this.tiffReader.sendMessage(TiffProcessorMessageType.ERROR, null, "Cannot find basic structure info")
       return
     }
@@ -166,13 +165,16 @@ class TiffPixelReader {
       }
     }
 
+    //Try to get the no data value
+    const noData = this.tiffReader.getNoData()
+
     //Store all of the data in a single object
     this.meta = {
       width,
       height,
       samplesPerPixel,
       bitsPerSample,
-      noVal: parseFloat(noData).toPrecision(4),
+      noVal: noData ? parseFloat(noData).toPrecision(4) : null,
       stripOffsets, 
       stripByteCounts, 
       tileOffsets, 
