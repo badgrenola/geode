@@ -91,9 +91,9 @@ const parseInfo = (currentBandIndex, rawData, pixelInfo, set) => {
     resolution,
     format,
     structure,
-    minValue: pixelInfo ? pixelInfo.min : undefined,
-    maxValue: pixelInfo ? pixelInfo.max : undefined,
-    meanValue: pixelInfo ? pixelInfo.mean : undefined,
+    minValue: pixelInfo !== undefined ? (pixelInfo ? pixelInfo.min : null) : undefined,
+    maxValue: pixelInfo !== undefined ? (pixelInfo ? pixelInfo.max : null) : undefined,
+    meanValue: pixelInfo !== undefined ? (pixelInfo ? pixelInfo.mean : null) : undefined,
     statsAreApproximate: pixelInfo ? pixelInfo.isApproximate : undefined,
   })
 }

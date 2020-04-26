@@ -72,7 +72,11 @@
       </span>
       {#if $GeodeInfoPanelStore.minValue !== undefined}
         <span class="font-light text-gray-700" title={$GeodeInfoPanelStore.minValue}>
-          {roundToDP($GeodeInfoPanelStore.minValue, 4)}
+          {
+            $GeodeInfoPanelStore.minValue !== null ? 
+            roundToDP($GeodeInfoPanelStore.minValue, 4) : 
+            "Unsupported"
+          }
         </span>
       {:else}
         <Spinner size={spinnerSize} />
@@ -85,7 +89,11 @@
       </span>
       {#if $GeodeInfoPanelStore.maxValue !== undefined}
         <span class="font-light text-gray-700" title={$GeodeInfoPanelStore.maxValue}>
-          {roundToDP($GeodeInfoPanelStore.maxValue, 4)}
+          {
+            $GeodeInfoPanelStore.maxValue !== null ? 
+            roundToDP($GeodeInfoPanelStore.maxValue, 4) : 
+            "Unsupported"
+          }
         </span>
       {:else}
         <Spinner size={spinnerSize} />
@@ -98,7 +106,11 @@
       </span>
       {#if $GeodeInfoPanelStore.meanValue !== undefined}
         <span class="font-light text-gray-700" title={$GeodeInfoPanelStore.meanValue}>
-          {roundToDP($GeodeInfoPanelStore.meanValue, 4)}
+          {
+            $GeodeInfoPanelStore.meanValue !== null ? 
+            roundToDP($GeodeInfoPanelStore.meanValue, 4) : 
+            "Unsupported"
+          }
         </span>
       {:else}
         <Spinner size={spinnerSize} />
