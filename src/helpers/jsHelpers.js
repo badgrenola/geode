@@ -23,4 +23,8 @@ const isObject = value => {
   return value && typeof value === 'object' && value.constructor === Object
 }
 
-export { bytesToMB, range, rangeSkipping, roundToDP, toPrecision, reduceTotal, isObject }
+const arrMin = (arr) => Math.min(...arr)
+const arrMax = (arr) => Math.max(...arr)
+const arrAvg = (arr) => (arr.reduce((a,b) => a + b, 0) / arr.length)
+
+export { arrMin, arrMax, arrAvg, bytesToMB, range, rangeSkipping, roundToDP, toPrecision, reduceTotal, isObject }
