@@ -75,11 +75,13 @@ function getDataArrayFromBytes(bytes, dataType, byteOrder, skip) {
   let offset = 0
   let byteCount = dataType.byteCount[0]
 
+  let rangeVal = Math.floor(bytes.byteLength / byteCount)
+
   let byteRange = null;
   if (skip) {
-    byteRange = rangeSkipping(bytes.byteLength / byteCount, skip)
+    byteRange = rangeSkipping(rangeVal, skip)
   } else {
-    byteRange = range(bytes.byteLength / byteCount)
+    byteRange = range(rangeVal)
   }
 
   const result = byteRange.map((index) => {
