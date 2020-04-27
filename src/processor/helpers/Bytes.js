@@ -150,6 +150,32 @@ async function getDataArrayFromFileBuffer(file, byteOffset, byteCount, dataType,
   }
 }
 
+async function getEmptyDataArrayFromCount(byteCount, dataType) {
+  //Switch on the datatype to return the values directly
+  switch (dataType) {
+    case DataType.Byte:
+      return new Uint8Array(byteCount)
+    case DataType.Ascii:
+      return [" ".repeat(byteCount)]
+    case DataType.Short:
+      return new Uint16Array(byteCount)
+    case DataType.Long:
+      return new Uint32Array(byteCount)
+    case DataType.Undefine:
+      return new Int8Array(byteCount)
+    case DataType.SShort:
+      return new Int16Array(byteCount)
+    case DataType.SLong:
+      return new Int32Array(byteCount)
+    case DataType.Float:
+      return new Float32Array(byteCount)
+    case DataType.Double:
+      return new Float64Array(byteCount)
+    default: 
+      return null
+  }
+}
 
 
-export { ByteOrder, DataType, getDataTypeFromID, getUInt8ByteArray, getDataFromBytes, getDataArrayFromBytes, valueIsValidForDataType, getDataArrayFromFileBuffer}
+
+export { ByteOrder, DataType, getDataTypeFromID, getUInt8ByteArray, getDataFromBytes, getDataArrayFromBytes, valueIsValidForDataType, getDataArrayFromFileBuffer, getEmptyDataArrayFromCount }
