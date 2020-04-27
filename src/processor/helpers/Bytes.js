@@ -115,36 +115,44 @@ function getDataArrayFromBytes(bytes, dataType, byteOrder, skip) {
 
 
 
-async function getDataArrayFromFileBuffer(file, byteOffset, byteCount, dataType, byteOrder, sysByteOrder, skip) {
+async function getDataArrayFromFileBuffer(file, byteOffset, byteCount, dataType, byteOrder, sysByteOrder, skipValue, rowLengthForTileSkip) {
   //If byte order and system byte order is the same we can do a direct convert to the arrays of the required type.
   //Right now, we only support files that match the system byte order so <thumbs up emoticon>
-  if (byteOrder !== sysByteOrder) { return null }
+  if (byteOrder !== sysByteOrder) { return null } 
 
   //Slice the buffer to the required size
   const buffer = await new Response(
     file.slice(byteOffset, byteOffset + byteCount)
   ).arrayBuffer()
 
+  //Construct the filter functions
+  let filterFunc = (_, i) => i%skipValue === 0
+  if (rowLengthForTileSkip) {
+    //We've been given a rowLength.
+    //Thinking of the results as a square of rowLength x rowLength, we'll skip rows based on skipValue
+    filterFunc = (_, i) => (i%skipValue === 0) && (Math.floor(i/rowLengthForTileSkip)%skipValue === 0)
+  }
+
   //Switch on the datatype to return the values directly
   switch (dataType) {
     case DataType.Byte:
-      return new Uint8Array(buffer).filter((v, i) => i%skip === 0)
+      return new Uint8Array(buffer).filter(filterFunc)
     case DataType.Ascii:
       return [String.fromCharCode.apply(null, buffer).trim()]
     case DataType.Short:
-      return new Uint16Array(buffer).filter((v, i) => i%skip === 0)
+      return new Uint16Array(buffer).filter(filterFunc)
     case DataType.Long:
-      return new Uint32Array(buffer).filter((v, i) => i%skip === 0)
+      return new Uint32Array(buffer).filter(filterFunc)
     case DataType.Undefine:
-      return new Int8Array(buffer).filter((v, i) => i%skip === 0)
+      return new Int8Array(buffer).filter(filterFunc)
     case DataType.SShort:
-      return new Int16Array(buffer).filter((v, i) => i%skip === 0)
+      return new Int16Array(buffer).filter(filterFunc)
     case DataType.SLong:
-      return new Int32Array(buffer).filter((v, i) => i%skip === 0)
+      return new Int32Array(buffer).filter(filterFunc)
     case DataType.Float:
-      return new Float32Array(buffer).filter((v, i) => i%skip === 0)
+      return new Float32Array(buffer).filter(filterFunc)
     case DataType.Double:
-      return new Float64Array(buffer).filter((v, i) => i%skip === 0)
+      return new Float64Array(buffer).filter(filterFunc)
     default: 
       return null
   }

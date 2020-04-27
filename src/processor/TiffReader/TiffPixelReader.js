@@ -223,63 +223,21 @@ class TiffPixelReader {
       const byteOffset = offsets[i]
       const byteCount = counts[i]
 
-      //TODO : If file/sys endian-ness is the same, we can bypass the Dataview entirely. Also in the header 
-      //Get the strip data as floats
-      //TODO : Cleanup the imports for these
-      // let floatArray = await getFloat32ByteArray(this.tiffReader.file, byteOffset, byteCount);
+      //Get the results, passing in the tileWidth if this is a tiled file, so that value skipping can happen internally
+      let results = await getDataArrayFromFileBuffer(
+        this.tiffReader.file, 
+        byteOffset,
+        byteCount,
+        dataType,
+        this.tiffReader.header.byteOrder, 
+        this.tiffReader.sysByteOrder,
+        proxyLevel,
+        this.tiffReader.tiffType === TiffType.TILED ? this.meta.tileWidth : null
+      )
 
-      if (this.tiffReader.tiffType === TiffType.STRIPS) {
-
-        let results = await getDataArrayFromFileBuffer(
-          this.tiffReader.file, 
-          byteOffset,
-          byteCount,
-          dataType,
-          this.tiffReader.header.byteOrder, 
-          this.tiffReader.sysByteOrder,
-          proxyLevel
-        )
-
-        //Run the callback
-        if (pixelsCallback) {
-          pixelsCallback(results)
-        }
-
-      } else {
-
-        //Get an empty array of the right size
-        let finalByteCount = (this.meta.tileWidth / proxyLevel) * (this.meta.tileHeight / proxyLevel) * dataType.byteCount[0]
-        let results = await getEmptyDataArrayFromCount(finalByteCount, dataType)
-
-        //Get each line of the current tile one at a time. Skip lines based on proxy
-        const tileRowByteCount = this.meta.tileWidth * dataType.byteCount[0]
-        let resultsOffset = 0
-        for (var tileRowIndex = 0; tileRowIndex < this.meta.tileHeight; tileRowIndex += proxyLevel) {
-
-          //Get the bytes for this tile row
-          const tileRowByteOffset = (tileRowIndex * tileRowByteCount)
-          const tileRowFileByteOffset = tileRowByteOffset + byteOffset
-
-          //Get the float results, skipping based on proxy
-          let tileRowValues = await getDataArrayFromFileBuffer(
-            this.tiffReader.file, 
-            tileRowFileByteOffset,
-            tileRowByteCount,
-            dataType,
-            this.tiffReader.header.byteOrder, 
-            this.tiffReader.sysByteOrder,
-            proxyLevel
-          )
-
-          //Add the results to the empty array
-          results.set(tileRowValues, resultsOffset)
-          resultsOffset += tileRowValues.length
-        }
-
-        //Run the callback
-        if (pixelsCallback) {
-          pixelsCallback(results)
-        }
+      //Run the callback
+      if (pixelsCallback) {
+        pixelsCallback(results)
       }
     }
   }
