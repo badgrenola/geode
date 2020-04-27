@@ -40,6 +40,8 @@ function valueIsValidForDataType(value, dataType, noVal) {
   // "Integers above 65519 are rounded to "infinity" if using round-to-even, or above 65535 if using round-to-zero, or above 65504 if using round-to-infinity."
     
   switch (dataType.id) {
+    case 1: //BYTE
+      return value > 0 && value <= 255
     case 3: //SHORT
       return value !== noVal && value <= 65519
     case 11: //FLOAT

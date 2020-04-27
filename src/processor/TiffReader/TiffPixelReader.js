@@ -66,10 +66,10 @@ class TiffPixelReader {
       return
     }
 
-    //Check for RGB files
-    const rgbCheck = this.tiffReader.getPhotometricInterpretation()
-    if (rgbCheck !== Enums.PhotometricInterpretation.MINISBLACK) {
-      this.tiffReader.sendMessage(TiffProcessorMessageType.PIXEL_STATS_LOAD_ERROR, null, "RGB files not currently supported")
+    //Check for RGB files. We only want a single sample per pixel
+    const samplesPerPixel = this.tiffReader.getSamplesPerPixel()
+    if (samplesPerPixel !== 1) {
+      this.tiffReader.sendMessage(TiffProcessorMessageType.PIXEL_STATS_LOAD_ERROR, null, "Non-Grayscale files not currently supported")
       return
     }
 
@@ -173,12 +173,10 @@ class TiffPixelReader {
     //Try to get the no data value
     const noData = this.tiffReader.getNoData()
 
-    //TODO : Do this properly
     //Get the data type of the byte info
-    let dataType = DataType.Short
-    if (bitsPerSample === 32) {
-      dataType = DataType.Float
-    }
+    let dataType = DataType.Byte
+    if (bitsPerSample === 16) { dataType = DataType.Short }
+    if (bitsPerSample === 32) { dataType = DataType.Float }
 
     //Store all of the data in a single object
     this.meta = {
