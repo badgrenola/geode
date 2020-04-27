@@ -61,16 +61,6 @@ async function getUInt8ByteArray(file, offset, length) {
   return new Uint8Array(buffer)
 }
 
-async function getFloat32ByteArray(file, offset, length) {
-  //Get an array buffer from the file
-  const buffer = await new Response(
-    file.slice(offset, offset + length)
-  ).arrayBuffer()
-
-  //Return as a UInt8 Array
-  return new Float32Array(buffer)
-}
-
 function getDataFromBytes(bytes, dataType, byteOrder) {
   //Check byteorder and return using DataView to set endianness appropriately
   switch (dataType.id) {
@@ -122,4 +112,44 @@ function getDataArrayFromBytes(bytes, dataType, byteOrder, skip) {
 
 }
 
-export { ByteOrder, DataType, getDataTypeFromID, getUInt8ByteArray, getDataFromBytes, getDataArrayFromBytes, getFloat32ByteArray, valueIsValidForDataType}
+
+
+
+async function getDataArrayFromFileBuffer(file, byteOffset, byteCount, dataType, byteOrder, sysByteOrder, skip) {
+  //If byte order and system byte order is the same we can do a direct convert to the arrays of the required type.
+  //Right now, we only support files that match the system byte order so <thumbs up emoticon>
+  if (byteOrder !== sysByteOrder) { return null }
+
+  //Slice the buffer to the required size
+  const buffer = await new Response(
+    file.slice(byteOffset, byteOffset + byteCount)
+  ).arrayBuffer()
+
+  //Switch on the datatype to return the values directly
+  switch (dataType) {
+    case DataType.Byte:
+      return new Uint8Array(buffer).filter((v, i) => i%skip === 0)
+    case DataType.Ascii:
+      return [String.fromCharCode.apply(null, buffer).trim()]
+    case DataType.Short:
+      return new Uint16Array(buffer).filter((v, i) => i%skip === 0)
+    case DataType.Long:
+      return new Uint32Array(buffer).filter((v, i) => i%skip === 0)
+    case DataType.Undefine:
+      return new Int8Array(buffer).filter((v, i) => i%skip === 0)
+    case DataType.SShort:
+      return new Int16Array(buffer).filter((v, i) => i%skip === 0)
+    case DataType.SLong:
+      return new Int32Array(buffer).filter((v, i) => i%skip === 0)
+    case DataType.Float:
+      return new Float32Array(buffer).filter((v, i) => i%skip === 0)
+    case DataType.Double:
+      return new Float64Array(buffer).filter((v, i) => i%skip === 0)
+    default: 
+      return null
+  }
+}
+
+
+
+export { ByteOrder, DataType, getDataTypeFromID, getUInt8ByteArray, getDataFromBytes, getDataArrayFromBytes, valueIsValidForDataType, getDataArrayFromFileBuffer}
