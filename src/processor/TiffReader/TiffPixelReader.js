@@ -1,6 +1,6 @@
 import { TiffProcessorMessageType } from './TiffProcessorMessageType'
 import { TiffType } from './TiffType'
-import { DataType, getUInt8ByteArray, getDataArrayFromBytes, getFloat32ByteArray, valueIsValidForDataType} from '../helpers/Bytes'
+import { DataType, valueIsValidForDataType, getDataArrayFromFileBuffer} from '../helpers/Bytes'
 import { Enums } from '../helpers/Enums'
 import { arrAvg, arrMin, arrMax } from '../../helpers/jsHelpers'
 
@@ -91,18 +91,32 @@ class TiffPixelReader {
       this.proxyLevel, 
       (results) => {
 
-      //For each row, get the min and max and update our value for the entire file
-      let validResults = results.filter(v => valueIsValidForDataType(v, this.meta.dataType, this.meta.noVal))
-      if (validResults.length) {
-        //Update the min/max
-        let resultsMin = arrMin(validResults)
-        let resultsMax = arrMax(validResults)
-        if (isFinite(resultsMin) && resultsMin < this.meta.min) { this.meta.min = resultsMin }
-        if (isFinite(resultsMax) && resultsMax > this.meta.max) { this.meta.max = resultsMax }
+        //For each set of results that comes back, get the min and max and update our value for the entire file
+        //For tiled files, this set of results will be an array of arrays - one for each row of a single tile
+        //For non-tiled files, these results will be a single array containing the values for a given strip
 
-        // Update the averages
-        averages.push(arrAvg(validResults))
-      }
+        //TODO : This could be faster for tiled files
+      
+        //We work around this by nesting the strip into a separate array
+        if (this.tiffReader.tiffType === TiffType.STRIPS) {
+          results = [results]
+        } 
+
+        results.forEach(result => {
+
+          //If this is a file, valid Results is an 
+          let validResults = result.filter(v => valueIsValidForDataType(v, this.meta.dataType, this.meta.noVal))
+          if (validResults.length) {
+            //Update the min/max
+            let resultsMin = arrMin(validResults)
+            let resultsMax = arrMax(validResults)
+            if (isFinite(resultsMin) && resultsMin < this.meta.min) { this.meta.min = resultsMin }
+            if (isFinite(resultsMax) && resultsMax > this.meta.max) { this.meta.max = resultsMax }
+
+            // Update the averages
+            averages.push(arrAvg(validResults))
+          }
+        })
     })
 
     //Check for a pixel loop error
@@ -173,6 +187,7 @@ class TiffPixelReader {
     //Try to get the no data value
     const noData = this.tiffReader.getNoData()
 
+    //TODO : Do this properly
     //Get the data type of the byte info
     let dataType = DataType.Short
     if (bitsPerSample === 32) {
@@ -192,6 +207,8 @@ class TiffPixelReader {
       tileByteCounts, 
       tileWidth, 
       tileHeight,
+      tilesX, 
+      tilesY,
       dataType
     }
 
@@ -205,10 +222,18 @@ class TiffPixelReader {
       return "Offsets and Counts don't match"
     }
 
-    //Loop through 
-    for (var i = 0; i<counts.length; i += proxyLevel) {
+    //Calculate the skip amount for this outer level.
+    //For strip files, it'll be the proxyLevel.
+    //For tiled files, it'll be 1
+    let outerSkip = proxyLevel
+    if (this.tiffReader.tiffType === TiffType.TILED) {
+      outerSkip = 1
+    }
 
-      //Get the byte offset and count
+    //Loop through each strip or each tile
+    for (var i = 0; i<counts.length; i += outerSkip) {
+
+      //Get the byte offset and count for each strip or tile
       const byteOffset = offsets[i]
       const byteCount = counts[i]
 
@@ -216,8 +241,42 @@ class TiffPixelReader {
       //Get the strip data as floats
       //TODO : Cleanup the imports for these
       // let floatArray = await getFloat32ByteArray(this.tiffReader.file, byteOffset, byteCount);
-      let bytes = await getUInt8ByteArray(this.tiffReader.file, byteOffset, byteCount)
-      let results = getDataArrayFromBytes(bytes, dataType, this.tiffReader.header.byteOrder, proxyLevel)
+
+      let results = []
+      if (this.tiffReader.tiffType === TiffType.STRIPS) {
+
+        results = await getDataArrayFromFileBuffer(
+          this.tiffReader.file, 
+          byteOffset,
+          byteCount,
+          dataType,
+          this.tiffReader.header.byteOrder, 
+          this.tiffReader.sysByteOrder,
+          proxyLevel
+        )
+      } else {
+        //Get each line of the current tile one at a time. Skip lines based on proxy
+        const tileRowByteCount = this.meta.tileWidth * dataType.byteCount[0]
+        for (var tileRowIndex = 0; tileRowIndex < this.meta.tileHeight; tileRowIndex += proxyLevel) {
+
+          //Get the bytes for this tile row
+          const tileRowByteOffset = (tileRowIndex * tileRowByteCount) + byteOffset
+
+          //Get the float results, skipping based on proxy, and add to the results array
+          let tileRowValues = await getDataArrayFromFileBuffer(
+            this.tiffReader.file, 
+            tileRowByteOffset,
+            tileRowByteCount,
+            dataType,
+            this.tiffReader.header.byteOrder, 
+            this.tiffReader.sysByteOrder,
+            proxyLevel
+          )
+          results = results.concat(tileRowValues)
+        }
+      }
+
+      //If we're dealing with tiffs, we now need to manually proxy
 
       if (pixelsCallback) {
         pixelsCallback(results)
@@ -228,3 +287,4 @@ class TiffPixelReader {
 }
 
 export { TiffPixelReader }
+
