@@ -211,13 +211,13 @@ class TiffPixelReader {
     //Calculate the skip amount for this outer level.
     //For strip files, it'll be the proxyLevel.
     //For tiled files, it'll be 1
-    let outerSkip = proxyLevel
+    let offsetDataSkipVal = proxyLevel
     if (this.tiffReader.tiffType === TiffType.TILED) {
-      outerSkip = 1
+      offsetDataSkipVal = 1
     }
 
     //Loop through each strip or each tile
-    for (var i = 0; i<counts.length; i += outerSkip) {
+    for (var i = 0; i<counts.length; i += offsetDataSkipVal) {
 
       //Get the byte offset and count for each strip or tile
       const byteOffset = offsets[i]
