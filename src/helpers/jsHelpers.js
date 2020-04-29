@@ -27,4 +27,6 @@ const arrMin = (arr) => Math.min(...arr)
 const arrMax = (arr) => Math.max(...arr)
 const arrAvg = (arr) => (arr.reduce((a,b) => a + b, 0) / arr.length)
 
-export { arrMin, arrMax, arrAvg, bytesToMB, range, rangeSkipping, roundToDP, toPrecision, reduceTotal, isObject }
+const map = (value, x1, y1, x2, y2) => (value - x1) * (y2 - x2) / (y1 - x1) + x2;
+
+export { arrMin, arrMax, arrAvg, bytesToMB, range, rangeSkipping, roundToDP, toPrecision, reduceTotal, isObject, map }
