@@ -235,7 +235,7 @@ class TiffPixelReader {
 
       //Run the callback
       if (pixelsCallback) {
-        pixelsCallback(results)
+        pixelsCallback(results, i)
       }
     }
   }
