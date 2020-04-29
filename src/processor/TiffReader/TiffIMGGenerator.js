@@ -1,5 +1,6 @@
 import { TiffProcessorMessageType } from './TiffProcessorMessageType'
 import { ByteOrder, DataType, valueIsValidForDataType } from '../helpers/Bytes'
+import { TiffType } from './TiffType'
 
 class TiffIMGGenerator {
 
@@ -10,8 +11,11 @@ class TiffIMGGenerator {
     //Store the number of bytes to use for the header
     this.headerByteCount = 13680
 
+    //Store the missing value we're using the IMGs
+    this.missingValue = -3.4028226550889e38
+
     //Store a separate proxy level for IMG Generation
-    this.imgProxyLevel = 8
+    this.imgProxyLevel = 1
   }
 
   async constructIMG() {
@@ -37,21 +41,27 @@ class TiffIMGGenerator {
 
     //Set the proxy level
     const proxySq = this.imgProxyLevel * this.imgProxyLevel
+    
+    //Determine some constants
+    const proxyWidth = Math.floor(this.tiffReader.pixelReader.meta.width / this.imgProxyLevel)
+    const proxyHeight = Math.floor(this.tiffReader.pixelReader.meta.height / this.imgProxyLevel)
+    const proxyTileWidth = (this.tiffReader.pixelReader.meta.tileWidth / this.imgProxyLevel)
+    const proxyTileHeight = (this.tiffReader.pixelReader.meta.tileHeight / this.imgProxyLevel)
 
     //Set the data type of the output data
     const outputDataType = DataType.Float
 
     //Calculate the size of the data view required for the non-header data
-    const unproxiedDVLength = 
+    const unproxiedDataLength = 
       this.tiffReader.pixelReader.meta.width * 
       this.tiffReader.pixelReader.meta.height * 
       outputDataType.byteCount[0]
 
     //Calculate the full DV size, by proxying the above length, and adding the header
-    const finalDVLength = Math.floor(unproxiedDVLength/proxySq) + this.headerByteCount
+    const proxiedDataLength = Math.floor(unproxiedDataLength/proxySq)
+    const finalDVLength = proxiedDataLength + this.headerByteCount
 
-    
-    //Create a new dataview of the correct length
+    // Create a new dataview of the correct length
     const dv = new DataView(new ArrayBuffer(finalDVLength))
 
     //Get the label as a UInt8 array
@@ -64,23 +74,68 @@ class TiffIMGGenerator {
 
     //Loop through all the pixels at full resolution, get each value as ??? and add to the buffer
     let dataViewByteOffset = this.headerByteCount;
+
+    //Figure out how many proxied values there are in each full tileRow
+    const fullTileRowValues = this.tiffReader.pixelReader.meta.tilesX * proxyTileWidth * proxyTileHeight
+
     await this.tiffReader.pixelReader.pixelLoop(
       this.tiffReader.pixelReader.meta.stripOffsets || this.tiffReader.pixelReader.meta.tileOffsets, 
       this.tiffReader.pixelReader.meta.stripByteCounts || this.tiffReader.pixelReader.meta.tileByteCounts,
       this.tiffReader.pixelReader.meta.dataType, 
       this.imgProxyLevel, 
-      (pixelVals) => {
+      (pixelVals, i) => {
 
-      //For each row, get the min and max and update our value for the entire file
-      // let validResults = results.filter(v => valueIsValidForDataType(v, this.meta.dataType, this.meta.noVal))
+        //If file is a strip file, just set the data
+        if (this.tiffReader.tiffType === TiffType.STRIPS) {
+          pixelVals.forEach(val => {
+            if (valueIsValidForDataType(val, this.tiffReader.pixelReader.meta.dataType, this.tiffReader.pixelReader.meta.noVal)) {
+              try {
+                dv.setFloat32(dataViewByteOffset, val, this.tiffReader.sysByteOrder === ByteOrder.LittleEndian);
+              } catch(err) { 
+                console.error(err)
+                console.error(dataViewByteOffset, val)
+                throw err;
+              }
+            } else {
+              //Add the missing constant
+              dv.setFloat32(dataViewByteOffset, this.missingValue, this.tiffReader.sysByteOrder === ByteOrder.LittleEndian);
+            }
+            dataViewByteOffset +=  outputDataType.byteCount[0]
+          })
+        } else {
 
-      pixelVals.forEach(val => {
-        if (valueIsValidForDataType(val, this.tiffReader.pixelReader.meta.dataType, this.tiffReader.pixelReader.meta.noVal)) {
-          dv.setFloat32(dataViewByteOffset, val, this.tiffReader.sysByteOrder === ByteOrder.LittleEndian);
+          //Calculate the row/col of the current tile
+          const tileRow = Math.floor(i/this.tiffReader.pixelReader.meta.tilesX)
+          const tileCol = Math.floor(i%this.tiffReader.pixelReader.meta.tilesX)
+
+          //Calculate how many rows/cols exist before the current tile (up and to the left)
+          const rowsAboveCurrentTile = tileRow * (this.tiffReader.pixelReader.meta.tileHeight / this.imgProxyLevel)
+          const colsBeforeCurrentTile = tileCol * (this.tiffReader.pixelReader.meta.tileWidth / this.imgProxyLevel)
+
+          //For each tile's pixel values
+          pixelVals.forEach((val, r) => {
+
+            //Get the index of the current value
+            const currentLineIndex = Math.floor(r / proxyTileHeight) + rowsAboveCurrentTile
+            const currentColIndex = Math.floor(r % proxyTileWidth) + colsBeforeCurrentTile
+
+            //Ignore value if index goes beyond image width or image height - i.e. the tiff tile is padded
+            if (currentColIndex >= proxyWidth || currentLineIndex >= proxyHeight) { 
+              return
+            }
+            
+            //Get the byte offset, given the current value. Remove the count of ignored values to avoid gaps in the file
+            const byteOffset = (((currentLineIndex * proxyWidth) + (currentColIndex)) * outputDataType.byteCount[0]) + this.headerByteCount
+
+            if (valueIsValidForDataType(val, this.tiffReader.pixelReader.meta.dataType, this.tiffReader.pixelReader.meta.noVal)) {
+              //Store the result
+              dv.setFloat32(byteOffset, val, this.tiffReader.sysByteOrder === ByteOrder.LittleEndian);
+            } else {
+              // Add the missing constant
+              dv.setFloat32(byteOffset, this.missingValue, this.tiffReader.sysByteOrder === ByteOrder.LittleEndian);
+            }
+          })
         }
-        dataViewByteOffset +=  outputDataType.byteCount[0]
-      })
-
     })
 
     //Send the Dataview as a blob to the main thread for download
@@ -98,7 +153,7 @@ class TiffIMGGenerator {
     if (typeof mapScale === typeof []) { mapScale = mapScale[0] }
 
     //TODO Get the mapscale key
-    const mapScaleKey = "<DEGREE/PIXEL>"
+    const mapScaleKey = "<M/PIXEL>"
 
     // Adjust the width/height/scale based on the proxy
     const labelWidth = Math.floor(this.tiffReader.pixelReader.meta.width / this.imgProxyLevel)
@@ -114,7 +169,7 @@ class TiffIMGGenerator {
     labelLines.push('RECORD_TYPE               = FIXED_LENGTH')
     labelLines.push(`RECORD_BYTES              = ${this.headerByteCount}`)
     labelLines.push(`FILE_RECORDS              = ${labelHeight + 1}`)
-    labelLines.push('^IMAGE                    = 2')
+    labelLines.push('^IMAGE = 2')
     labelLines.push('')
 
     //ID info
@@ -149,7 +204,7 @@ class TiffIMGGenerator {
     labelLines.push('END')
 
     //Join and return 
-    return labelLines.join("\n\r")
+    return labelLines.join("\n")
   }
 
 }
